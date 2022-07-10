@@ -1,6 +1,7 @@
 // ================================================================
 // the Miller Shuffle Algorithm
 //
+// source: https://github.com/RondeSC/Miller_Shuffle_Algo
 // license: Attribution-NonCommercial-ShareAlike
 // Copyright 2022 Ronald R. Miller
 // http://www.apache.org/licenses/LICENSE-2.0
