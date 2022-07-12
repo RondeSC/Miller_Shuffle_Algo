@@ -18,19 +18,21 @@ int main(int argc, char **argv)
 	srand((unsigned) time(NULL));
 
     for (n=0; n<3; n++) {
-		printf("\n\n  Shuffles using rand() vs Miller_Shuffle_Algo.\n");
+	    shuffleID = rand();
+
+	    printf("\n\n  Shuffles using rand() vs Miller_Shuffle_Algo.\n");
 		// output generated instances of shuffles
 		// ---------------------------------------
 		for (i = 0; i < 52; i++) {
-			item = rand()%52;
+			item = rand()%52;                               // used to see rand() vs MSA_a
 			//     ---------
+			//item = MillerShuffleAlgo_b(i, shuffleID, 52); // used to see MSA_b vs MSA_a
 			if (item<26) c=item+'a';
 			else         c=item-26+'A';
 			printf("%c",c);
 		}
 		printf("\n");
 
-		shuffleID = rand();
 		for (i = 0; i < 52; i++) {
 			item = MillerShuffleAlgo(i, shuffleID, 52);
 			//     -----------------
