@@ -22,6 +22,6 @@ Characteristics of the Miller Shuffle algorithm B
 
 Their statistical behavior has been extensively tested, honed and validated.
 For more details and analysis of the Miller Shuffle Algo see:
-https://www.instructables.com/Miller_Shuffle_Algorithm/
+https://www.instructables.com/Miller-Shuffle-Algorithm/
 
 In this repository there is a simple executable program "exampleShuffles" using MillerShuffleAlgo() in a comparison with the use of rand() shuffling a set of items.
