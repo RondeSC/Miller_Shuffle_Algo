@@ -6,19 +6,22 @@
 /*------------------------------------------------------------------*/
 /*  Generates samples of shuffling 52 letters a-zA-Z (~songs)       */
 /*                                                                  */
-/*  You may run this a few times to get demonstrative comparisons   */ 
 
 int main(int argc, char **argv)
 {
 	int i, n, item;
-	char c;
+	char c,rep;
+	char reps[53];
+	char seen[52];
 	int shuffleID;
    
+	reps[52]=0;
 	/* Intializes random number generator */
 	srand((unsigned) time(NULL));
 
-    for (n=0; n<3; n++) {
+    	for (n=0; n<3; n++) {
 	    shuffleID = rand();
+	    for (i = 0; i < 52; i++) seen[i]=0;
 
 	    printf("\n\n  Shuffles using rand() vs Miller_Shuffle_Algo.\n");
 		// output generated instances of shuffles
@@ -30,8 +33,10 @@ int main(int argc, char **argv)
 			if (item<26) c=item+'a';
 			else         c=item-26+'A';
 			printf("%c",c);
+			reps[i] = (seen[item])? '-':' ';
+			seen[item]=1;
 		}
-		printf("\n");
+		printf("\nrepeats: %s\n         ",reps); // highlight the repeated selections
 
 		for (i = 0; i < 52; i++) {
 			item = MillerShuffleAlgo(i, shuffleID, 52);
