@@ -10,6 +10,8 @@
 // the Miller Shuffle Algorithm (aka: MillerShuffleAlgo_a )
 // produces a shuffled Index given a base Index, a random seed and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
+// Utilizes minimum resources. 
+// As such the Miller Shuffle algorithm is the best choice for a playlist shuffle.
 unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int RandizeR, unsigned int listSize) {
   unsigned int p=16183;   // arbitrary prime #s  must be > listSize
   unsigned int p2=6197;   // p~=2.618p2 (not critical) 
@@ -46,7 +48,8 @@ unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int RandizeR, unsigned
 // Produce a shuffled Index given a base Index, a random seed and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
 // With this algo there is not a 1:1 between inx IN and OUT
-// better at randomixing pattern occurrences, as seen in cardDeal_Test()
+// Better at randomixing pattern occurrences, providing very good sequence distribution over time.
+// Preferred for Shuffles used for dealing to competing players.
 unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int RandizeR, unsigned int listSize) {
   unsigned int xi,si;
   unsigned int p=16183;  // arbitrary prime #s  must be > listSize
@@ -109,6 +112,7 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int RandizeR, unsign
 //
 // This is a variation of the Miller Shuffle Algo; it will provide 2 of each index ( <listSize ) 
 // in 2*listSize calls (with inx of 0 to 2*listSize-1), with a great, yet moderated, random behavior.
+// Preferred for doling out some exercise or test items (of eg: Morse code).
 unsigned int DDeck_Shuffle(unsigned int inx, unsigned int RandizeR, unsigned int listSize) {
   unsigned int si, r1, r2;
   unsigned int p1=16183;  // arbitrary prime #s  must be > listSize
