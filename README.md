@@ -12,6 +12,7 @@ Characteristics of the Miller Shuffle algorithm
   * does Not require RAM memory for an array (saves 2 * size of the # of indexes, over FYA)
   * No upfront processing. Minimal processing to generate any shuffled index on the fly.
   * does Not need a record of past plays in order to go back through selections (like using random() would)
+  * Not dependent on a system PRNG.
 
 In applications where an even distribution of expected patterns like a given pair of cards from a 'shuffled' deck is near esseniencial there is room for improvement. To handle this, I devised the Miller Shuffle Algo-b. I can only see where this could be considered to be earnestly needed is where money is involved, like in a casino gaming machine.
 
@@ -24,4 +25,4 @@ Their statistical behavior has been extensively tested, honed and validated.
 For more details and analysis of the Miller Shuffle Algo see:
 https://www.instructables.com/Miller-Shuffle-Algorithm/
 
-In this repository there is a simple executable program "exampleShuffles" using MillerShuffleAlgo() in a comparison with the use of rand() shuffling a set of items.
+In this repository there is a simple executable program "exampleShuffles" using MillerShuffleAlgo() in a comparison with the use of rand() shuffling a set of items. There is also a Javascript implementation .
