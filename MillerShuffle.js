@@ -8,18 +8,18 @@
 
 
 // --------------------------------------------------------
-// Miller Shuffle Algo-A, produces a shuffled Index given a base Index, a randomization value and the length of the list being indexed.
+// Miller Shuffle Algo-A, produces a shuffled Index given a base Index, a shuffle ID value and the length of the list being indexed.
 // For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order, utilizing minimum resources.
 // As such this Miller Shuffle algorithm is the best choice for a playlist shuffle.
-function MillerShuffle(inx, randizeR, listSize) {
+function MillerShuffle(inx, shuffleID, listSize) {
   var si,r1,r2;
   var p=16183;
   var p2=6197; 
   var maxBin, halfBin,xorFlip;
   var evenTop;
-  var randR;     //local copy
+  var randR;     //local randomizer
 
-  randR = randizeR;
+  randR = shuffleID;
   maxBin=1;
   while ((2*maxBin+1)<listSize) maxBin=2*maxBin+1;
   halfBin=Math.floor(maxBin/2);         // limit field effected for great variation
@@ -47,14 +47,14 @@ function MillerShuffle(inx, randizeR, listSize) {
 
 var opti=0; // global
 // --------------------------------------------------------
-// Miller Shuffle Algo-B, produces a shuffled Index given a base Index, a randomization value and the length of the list being indexed.
+// Miller Shuffle Algo-B, produces a shuffled Index given a base Index, a shuffle ID value and the length of the list being indexed.
 // For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order, with very good sequence distribution over time.
 // Preferred for Shuffles used for dealing to competing players.
-function MillerShuffleAlgo_b(inx, randizeR, listSize) {
+function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
   var xi,si;
-  if ((inx%listSize)==0) opti=MillerShuffle(listSize-1, randizeR, listSize);
+  if ((inx%listSize)==0) opti=MillerShuffle(listSize-1, shuffleID, listSize);
  
-  si=MillerShuffle(inx, randizeR, listSize);
+  si=MillerShuffle(inx, shuffleID, listSize);
 
   if ((inx%listSize)==(listSize-1)) {
     si=opti;
@@ -75,9 +75,9 @@ function MillerShuffleAlgo_b(inx, randizeR, listSize) {
 // This utilizes the Miller Shuffle Algo; it will provide 2 of each inx (<listSize) in 2*listSize calls,
 // with a great, yet moderated, random behavior. 
 // Preferred for doling out some exercise or test items (of eg: Morse code).
-var suffleID = 314159; // global
+var shuffleID = 314159; // global
 function DDeck_Shuffle(inx, listSize) {
   if (inx==0) suffleID=Math.floor(Math.random() * 1000000); // reshuffle  
-  var si=MillerShuffle(inx, suffleID, 2*listSize);
+  var si=MillerShuffle(inx, shuffleID, 2*listSize);
   return (Math.floor(si/2));  // return a single desk 'Shuffled' index
 }
