@@ -8,14 +8,14 @@
 
 // --------------------------------------------------------
 // the Miller Shuffle Algorithm (aka: MillerShuffleAlgo_a )
-// produces a shuffled Index given a base Index, a random seed and the length of the list being
+// produces a shuffled Index given a base Index, a shuffle ID "seed" and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
 // Utilizes minimum resources. 
 // As such the Miller Shuffle algorithm is the best choice for a playlist shuffle.
-unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int RandizeR, unsigned int listSize) {
+unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int p=16183;   // arbitrary prime #s  must be > listSize
   unsigned int p2=6197;   // p~=2.618p2 (not critical) 
-  unsigned int si, r1,r2;
+  unsigned int si, r1,r2; // randomizers
   unsigned int maxBin, halfBin, xorFlip;
   unsigned int evenTop;
  
@@ -27,9 +27,9 @@ unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int RandizeR, unsigned
   evenTop = listSize - (listSize & 1);
   
   //si = (inx%listSize);    // allow an over zealous inx
-  RandizeR+=(inx/listSize); // & have it effect the mix
-  r1=RandizeR%1009;
-  r2=RandizeR%listSize;
+  shuffleID+=(inx/listSize); // & have it effect the mix
+  r1=shuffleID%1009;
+  r2=shuffleID%listSize;
 
   si = inx;
   /**** Heart of the Algorithm  *****/
@@ -45,16 +45,16 @@ unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int RandizeR, unsigned
 }
 
 // --------------------------------------------------------
-// Produce a shuffled Index given a base Index, a random seed and the length of the list being
+// Produce a shuffled Index given a base Index, a shuffle identifier and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
 // With this algo there is not a 1:1 between inx IN and OUT
 // Better at randomixing pattern occurrences, providing very good sequence distribution over time.
 // Preferred for Shuffles used for dealing to competing players.
-unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int RandizeR, unsigned int listSize) {
+unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int xi,si;
   unsigned int p=16183;  // arbitrary prime #s  must be > listSize
   unsigned int p2=6197;  // ~= p*0.618
-  unsigned int r1,r2;
+  unsigned int r1,r2;    // randomizers
   unsigned int xorFlip, maxBin, halfBin;
   unsigned int topEven;
   static int opti=-1; // opt inx for swapping
@@ -68,10 +68,10 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int RandizeR, unsign
   topEven = listSize - (listSize & 1);
 
   xi = (inx%listSize);      // allow an over zealous inx
-  RandizeR+=(inx/listSize);  // & have it effect the mix
+  shuffleID+=(inx/listSize);  // & have it effect the mix
 
-  r1=RandizeR%1009;
-  r2=RandizeR%listSize;
+  r1=shuffleID%1009;
+  r2=shuffleID%listSize;
   
   if (opti==-1 || inx==0) {seed=1;}
   do {
