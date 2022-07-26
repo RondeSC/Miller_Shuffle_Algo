@@ -28,9 +28,11 @@ function MillerShuffle(inx, shuffleID, listSize) {
   //si = (inx%listSize);            // allow an over zealous inx
   randR+=Math.floor(inx/listSize);  // & have it effect the mix
   r1=randR%1009;
-  r2=randR%listSize;
+  //r2=randR%listSize;
+  r2=((randR%1637)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
+  //si = inx;
+  si=(inx+randR)%listSize;
 
-  si = inx;
   si = (si*p + r1) % listSize;        // spin prime gears
 
   if (si<=maxBin) {
