@@ -29,9 +29,12 @@ unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int shuffleID, unsigne
   //si = (inx%listSize);    // allow an over zealous inx
   shuffleID+=(inx/listSize); // & have it effect the mix
   r1=shuffleID%1009;
-  r2=shuffleID%listSize;
+  //r2=shuffleID%listSize;
+  r2=((shuffleID%1637)*p2)%listSize; // consecutive shuffleIDs now make fresher shuffles
 
-  si = inx;
+  //si = inx;
+  si=(inx+shuffleID)%listSize;
+  
   /**** Heart of the Algorithm  *****/
   si = ((long)si*p + r1) % listSize;   // relatively prime gears turning operation
   if (si<=maxBin) {
