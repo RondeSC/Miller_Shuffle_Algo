@@ -74,7 +74,7 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
   shuffleID+=(inx/listSize);  // & have it effect the mix
 
   r1=shuffleID%1009;
-  r2=shuffleID%listSize;
+  r2=((shuffleID%listSize)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
   
   if (opti==-1 || inx==0) {seed=1;}
   do {
@@ -130,7 +130,7 @@ unsigned int DDeck_Shuffle(unsigned int inx, unsigned int RandizeR, unsigned int
   si = (inx%listSize);       // allow an over zealous inx
   RandizeR+=(inx/listSize);  // & have it effect the mix
   r1=RandizeR%1009;
-  r2=RandizeR%listSize;
+  r2=((RandizeR%listSize)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
   
   si = ((long)si*p1 + r1) % listSize;  // relatively prime gears turning operation
   if (si&1) si=topEven-si;                   // reverse flow of odd #s
