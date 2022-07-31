@@ -24,7 +24,7 @@ Characteristics of the Miller Shuffle algorithm B
   * If there is a functional need to back track history, a record would need to be kept. In the foreseen application this would not be needed. (Diagnostic recreation is though possible by way of re-seeding the system pseudo random generator and replaying from the beginning of a session.)
 
 Their statistical behavior has been extensively tested, honed and validated.
-For more details and analysis of the Miller Shuffle Algo see:
+For more details, randomness statistics and efficacy analysis, of the Miller Shuffle Algo see:
 https://www.instructables.com/Miller-Shuffle-Algorithm/
 
 In this repository there is a simple executable program "exampleShuffles" using MillerShuffleAlgo() in a comparison with the use of rand() shuffling a set of items. There is also a Javascript implementation .
