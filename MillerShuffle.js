@@ -10,9 +10,16 @@
 // --------------------------------------------------------
 // Miller Shuffle Algo-A, produces a shuffled Index given a base Index, a shuffle ID value and the length of the list being indexed.
 // For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order, utilizing minimum resources.
-// As such this Miller Shuffle algorithm is the best choice for a playlist shuffle.
+// As such this Miller Shuffle algorithm is the better choice for a playlist shuffle.
+//
+// The 'shuffleID' might be in a range of 0-999999 and be set by utilizing a PRNG.
+// Each time you want another pseudo random index from a current shuffle (incrementing 'inx')
+// you must be sure to pass in the "shuffleID" for that shuffle.
+// Note that you can exceed the listSize with the input 'inx' value and get very good results,
+// as the code effectively uses a secondary shuffle by way of using a 'working' modified value of the input shuffle ID.
+
 function MillerShuffle(inx, shuffleID, listSize) {
-  var si,r1,r2;
+  var si,r1,r2;  // randomizing factors, in combination provide ~million different shuffles
   var p=16183;
   var p2=6197; 
   var maxBin, halfBin,xorFlip;
@@ -27,10 +34,8 @@ function MillerShuffle(inx, shuffleID, listSize) {
   
   //si = (inx%listSize);            // allow an over zealous inx
   randR+=Math.floor(inx/listSize);  // & have it effect the mix
-  r1=randR%1009;
-  //r2=randR%listSize;
-  r2=((randR%1637)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
-  //si = inx;
+  r1=randR%1009;  // constant exact value is not super important
+  r2=((randR%1019)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
   si=(inx+randR)%listSize;
 
   si = (si*p + r1) % listSize;        // spin prime gears
@@ -46,6 +51,7 @@ function MillerShuffle(inx, shuffleID, listSize) {
 
   return(si);              // return 'Shuffled' index
 }
+
 
 var opti=0; // global
 // --------------------------------------------------------
