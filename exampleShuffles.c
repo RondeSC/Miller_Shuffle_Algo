@@ -19,12 +19,12 @@ int main(int argc, char **argv)
 	/* Intializes random number generator */
 	srand((unsigned) time(NULL));
 
-    	for (n=0; n<3; n++) {
+    for (n=0; n<3; n++) {
 	    shuffleID = rand();
 	    for (i = 0; i < 52; i++) seen[i]=0;
 
-	    printf("\n\n  Shuffles using rand() vs Miller_Shuffle_Algo.\n");
-		// output generated instances of shuffles
+	    printf("\n\n Shuffles using rand()  vs  Miller_Shuffle_Algo.\n    ");
+	    // output generated instances of shuffles
 		// ---------------------------------------
 		for (i = 0; i < 52; i++) {
 			item = rand()%52;                               // used to see rand() vs MSA_a
@@ -36,8 +36,8 @@ int main(int argc, char **argv)
 			reps[i] = (seen[item])? '-':' ';
 			seen[item]=1;
 		}
-		printf("\nrepeats: %s\n         ",reps); // highlight the repeated selections
-
+		printf("\n    %s  <- repeats\n    ",reps); // highlight the repeated selections
+		
 		for (i = 0; i < 52; i++) {
 			item = MillerShuffleAlgo(i, shuffleID, 52);
 			//     -----------------
