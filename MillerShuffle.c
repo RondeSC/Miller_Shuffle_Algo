@@ -11,28 +11,32 @@
 // produces a shuffled Index given a base Index, a shuffle ID "seed" and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
 // Utilizes minimum resources. 
-// As such the Miller Shuffle algorithm is the best choice for a playlist shuffle.
+// As such the Miller Shuffle algorithm is the better choice for a playlist shuffle.
+//
+// The 'shuffleID' might be in a range of 0-999999 and be set by utilizing a PRNG.
+// Each time you want another pseudo random index from a current shuffle (incrementing 'inx')
+// you must be sure to pass in the "shuffleID" for that shuffle.
+// Note that you can exceed the listSize with the input 'inx' value and get very good results,
+// as the code effectively uses a secondary shuffle by way of using a 'working' modified value of the input shuffle ID.
+
 unsigned int MillerShuffleAlgo(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int p=16183;   // arbitrary prime #s  must be > listSize
   unsigned int p2=6197;   // p~=2.618p2 (not critical) 
-  unsigned int si, r1,r2; // randomizers
+  unsigned int si, r1,r2; // randomizing factors, in combination provide ~million different shuffles
   unsigned int maxBin, halfBin, xorFlip;
   unsigned int evenTop;
  
   // compute reference values for later
   maxBin=1;
   while ((2*maxBin+1)<listSize) maxBin=2*maxBin+1;
-  halfBin=maxBin/2; // limit field effected for great variation
+  halfBin=maxBin/2; // limit field effected for greater variation
   xorFlip=0x5555 & halfBin;  // choose 5555 empirically
   evenTop = listSize - (listSize & 1);
   
   //si = (inx%listSize);    // allow an over zealous inx
   shuffleID+=(inx/listSize); // & have it effect the mix
-  r1=shuffleID%1009;
-  //r2=shuffleID%listSize;
-  r2=((shuffleID%1637)*p2)%listSize; // consecutive shuffleIDs now make fresher shuffles
-
-  //si = inx;
+  r1=shuffleID%1009;  // constant exact value is not super important
+  r2=((shuffleID%1019)*p2)%listSize; // consecutive shuffleIDs now make fresher shuffles
   si=(inx+shuffleID)%listSize;
   
   /**** Heart of the Algorithm  *****/
@@ -66,7 +70,7 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
   // compute reference values for later
   maxBin=1;
   while ((2*maxBin+1)<listSize) maxBin=2*maxBin+1;
-  halfBin=maxBin/2; // limit field effected for great variation
+  halfBin=maxBin/2; // limit field effected for greater variation
   xorFlip=0x5555 & halfBin;  // choose 5555 empirically
   topEven = listSize - (listSize & 1);
 
