@@ -38,6 +38,7 @@ I have improved and expanded my testing, and added a sequence permutation test (
 For the most part these figures are average results of 10 arbitary runs of each test of >1000 data points. 
 Except test for pairs dealt was 5 runs of >26,000 shuffles. Here are some representative results:
 
+```
                         avg.   album   early   dealt pair avg.
          Permu  ChiSq   err    ChiSq  repeats   min    Max
 Fisher   1.79    250   1.01%   17.3    45.5     4.6   14.2
@@ -55,3 +56,4 @@ avg err:  average %err from a 2D-Pi,3D-Pi, Golden Ratio and a mean calculation
 album ChiSq: of album distrution (tested as 40 albums of 13 songs each)
 early repeats: of an album ('early' value set arbitrarily)
 dealt pair: average min&max counts of a pair (eg: AceSpades+JackHearts) dealt to one of 10 players out of >26,000 shuffles dealt
+```
