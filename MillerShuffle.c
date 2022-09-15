@@ -68,7 +68,7 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
   unsigned int r1,r2;    // randomizers
   unsigned int xorFlip, maxBin, halfBin;
   unsigned int topEven;
-  static int opti=-1; // opt inx for swapping
+  static unsigned int opti=-1; // opt inx for swapping
   int seed=0;
 
   // compute reference values for later
@@ -82,7 +82,7 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
   shuffleID+=(inx/listSize);  // & have it effect the mix
 
   r1=shuffleID%1009;
-  r2=((shuffleID%listSize)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
+  r2=((long)(shuffleID%listSize)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
   
   if (opti==-1 || inx==0) {seed=1;}
   do {
@@ -109,6 +109,7 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
   
   return(si);  // return 'Shuffled' index
 }
+
 // --------------------------------------------------------
 // Miller Shuffle Algorithm C variant     NEW Aug 2022
 // Combines virturally all the good qualities of both MSA_a and MSA_b (per extensive testing),
@@ -116,11 +117,11 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
 // 
 // Produces a shuffled Index given a base Index, a random seed and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
-//           MillerShuffleAlgo_c
+//    aka:   MillerShuffleAlgo_c
 unsigned int MillerShuffle(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int si, r1, r2;
-  unsigned int p1=3251;  // prime #s  must be > listSize
-  unsigned int p2=5261; // ~= p1 * 1.618
+  unsigned int p1=50021;  // for shuffling upto 50,000 indexes (only needs 32bit unsigned math)
+  unsigned int p2=63629;  // ~= p1 * SQR(1.618)
   unsigned int maxBin;
   int sh;
   
@@ -129,20 +130,20 @@ unsigned int MillerShuffle(unsigned int inx, unsigned int shuffleID, unsigned in
   while ((2*maxBin+1)<listSize) maxBin=2*maxBin+1;
 
                               // allow an over zealous inx
-  shuffleID+=(inx/listSize);  // & have it effect the mix
+  shuffleID+=131*(inx/listSize);  // & have it effect the mix
   r1=shuffleID%1009;   // constant values are not super important
-  r2=((shuffleID%1019)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
+  r2=shuffleID%1019;
   si=(inx+shuffleID)%listSize;
 
   /**** Heart of the Algorithm  *****/
-  si = ((long)si*p1 + r1) % listSize;  // relatively prime gears turning operation
+  si = ((unsigned long)si*p1 + r1) % listSize;  // relatively prime gears turning operation
   if (si<=maxBin && si!=0) {  // This one middle action does the added mix up.
     // --- now for the secret sauce of MSA_c ...
     for (sh=0; (maxBin>>sh)>=si; sh++) ;  // set to do smart masked XOR operation
     si=si^((0x5555&maxBin)>>sh);      // note: operator order is important
   }
-  if (si%3==0) si=(((si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
-  si = ((long)si*p2 + r2) % listSize; // turn more prime wheels
+  if (si%3==0) si=(((unsigned long)(si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
+  si = ((unsigned long)si*p2 + r2) % listSize; // turn more prime wheels
 
   return(si);  // return 'Shuffled' index
 }
@@ -157,19 +158,21 @@ unsigned int MillerShuffle(unsigned int inx, unsigned int shuffleID, unsigned in
 // for each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
 // 
 // This variation of the Miller Shuffle algorithm is for when you need/want minimal coding and processing, 
-// to acheive good randomness along with desirable shuffle characteristics. (used by DDesk_Shuffle)
-// Generally for a shuffle this works really well; unlike using rand() which does not.
+// to acheive good randomness along with desirable shuffle characteristics. (eg: in an 8-bit MCU project)
+// For a simple shuffle this works really well; unlike using rand() which does not. (used by DDesk_Shuffle)
 unsigned int MillerShuffle_lite(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int si, r1, r2, topEven;
 
   topEven = listSize - (listSize & 1); // compute reference value  
-  shuffleID+=(inx/listSize);  // & have it effect the mix
+
+  shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
   r1=shuffleID%1009;   // constant values are not super important
   r2=shuffleID%1019;
   si=(inx+shuffleID)%listSize;
 
   si = ((long)si*3251 + r1) % listSize;  // relatively prime gears turning operation
-  if (si%3==0) si=(((si/3)*4493+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
+  // note: the next line operates only 1/3 the time, the following line 1/2
+  if (si%3==0) si=(((long)(si/3)*4493+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
   if (si&1)    si=topEven-si;          // reverse flow of odd #s
   si = ((long)si*5261 + r2) % listSize;  // turn more prime wheels
   
@@ -198,13 +201,13 @@ unsigned int DDeck_Shuffle(unsigned int inx, unsigned int shuffleID, unsigned in
   listSize=listSize*2; // Double the processing range
   
   topEven = listSize - (listSize & 1); // compute reference value  
-  shuffleID+=(inx/listSize);  // & have it effect the mix
+  shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
   r1=shuffleID%1009;   // constant values are not super important
   r2=shuffleID%1019;
   si=(inx+shuffleID)%listSize;
 
   si = ((long)si*p1 + r1) % listSize;  // relatively prime gears turning operation
-  if (si%3==0) si=(((si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
+  if (si%3==0) si=(((long)(si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
   if (si&1)    si=topEven-si;          // reverse flow of odd #s
   si = ((long)si*p2 + r2) % listSize;  // turn more prime wheels
 
