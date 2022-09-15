@@ -21,12 +21,13 @@ int main(int argc, char **argv)
 	unsigned int chks;
    
 	// verify algorithms
-	printf("\nChecksums for MS_a,  MS_b,  MS_c,  MS_lite: ");
+	// verify algorithms
+	printf("\nChecksums for  MS_a,   MS_b,   MS_c,   MS_lite: \n          ");
 	for (algo=1; algo<=4; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
-	} // MS_a=1069168    MS_b=1041123 (depending on rand() implementation)   MS_c=979955  MSlite=1000588
-    printf("\nshouldbe:  1069168, 1041123, 979955, 1030072.   note: MS_b is dependant on sys rand() implementation\n");
+	} // MS_a=1069168    MS_b=1041123 (depending on rand() implementation)   MS_c=1042866  MSlite=1030072
+	printf("\n should be: 1069168, 1041123, 1042866, 1030072.   note: MS_b is dependant on sys rand() implementation\n");
 
 	reps[52]=0;
 	/* Intializes random number generator */
