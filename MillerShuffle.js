@@ -83,11 +83,11 @@ function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
 // 
 // Produces a shuffled Index given a base Index, a random seed and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
-//       MillerShuffleAlgo_c
+//  aka: MillerShuffleAlgo_c
 function MillerShuffle(inx, shuffleID, listSize) {
   var si,r1,r2;
-  var p1=3251;
-  var p2=5261; 
+  var p1=50021;  // for shuffling upto 50,000 indexes
+  var p2=63629;  // ~= p1 * SQR(1.618) 
   var maxBin, sh;
   var randR;     //local copy
 
@@ -96,10 +96,9 @@ function MillerShuffle(inx, shuffleID, listSize) {
   maxBin=1;
   while ((2*maxBin+1)<listSize) maxBin=2*maxBin+1;
   
-                                    // allow an over zealous inx
-  randR+=Math.floor(inx/listSize);  // & have it effect the mix
+  randR+=131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
   r1=shuffleID%1009;   // constant values are not super important
-  r2=((shuffleID%1019)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
+  r2=shuffleID%1019;
   si=(inx+shuffleID)%listSize;
 
   /**** Heart of the Algorithm  *****/
@@ -125,8 +124,8 @@ function MillerShuffle(inx, shuffleID, listSize) {
 // for each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
 // 
 // This variation of the Miller Shuffle algorithm is for when you need/want minimal coding and processing, 
-// to acheive good randomness along with desirable shuffle characteristics. (used by DDesk_Shuffle)
-// Generally for a shuffle this works really well; unlike using rand() which does not.
+// to acheive good randomness along with desirable shuffle characteristics. (eg: in an 8-bit MCU project)
+// For a simple shuffle this works really well; unlike using rand() which does not. (used by DDesk_Shuffle)
 function MillerShuffle_lite(inx, shuffleID, listSize) {
   var si, r1, r2;
   var p1=3251;  // prime #s  must be > listSize
@@ -134,12 +133,13 @@ function MillerShuffle_lite(inx, shuffleID, listSize) {
   var topEven; 
 
   topEven = listSize - (listSize & 1); // compute reference value  
-  shuffleID+=Math.floor(inx/listSize);  // & have it effect the mix
+  shuffleID+=131*Math.floor(inx/listSize);  // have inx overflow effect the mix
   r1=shuffleID%1009;   // constant values are not super important
   r2=shuffleID%1019;
   si=(inx+shuffleID)%listSize;
 
   si = (si*p1 + r1) % listSize;  // relatively prime gears turning operation
+  // note: the next line operates only 1/3 the time, the following line 1/2
   if (si%3==0) si=((Math.floor(si/3)*p3+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
   if (si&1)    si=topEven-si;    // reverse flow of odd #s
   si = (si*p2 + r2) % listSize;  // turn more prime wheels
