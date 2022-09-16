@@ -4,6 +4,7 @@
 #include "MillerShuffle.h"
 
 unsigned int algoChkSum(int); // advance prototype
+float MeanTest(int);
 
 /*------------------------------------------------------------------*/
 /*  Generates samples of shuffling 52 letters a-zA-Z (~songs)       */
@@ -21,13 +22,18 @@ int main(int argc, char **argv)
 	unsigned int chks;
    
 	// verify algorithms
-	// verify algorithms
-	printf("\nChecksums for  MS_a,   MS_b,   MS_c,   MS_lite: \n          ");
+	printf("\nChecksums for     MS_a,   MS_b,   MS_c,   MS_lite: \n              ");
 	for (algo=1; algo<=4; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 	} // MS_a=1069168    MS_b=1041123 (depending on rand() implementation)   MS_c=1042866  MSlite=1030072
-	printf("\n should be: 1069168, 1041123, 1042866, 1030072.   note: MS_b is dependant on sys rand() implementation\n");
+	printf("\n should be:     1069168, 1041123, 1042866, 1030072.   note: MS_b is dependant on sys rand() implementation\n");
+
+	printf("\nMean must=255.5:");
+	for (algo=1; algo<=4; algo++) {
+		printf("  %.2f",MeanTest(algo));  // show algo chksum
+	}
+	printf("\n");
 
 	reps[52]=0;
 	/* Intializes random number generator */
@@ -93,4 +99,28 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 
   //printf("   Algorithm %d chkSum: %d\n",algo,csum);
   return (csum);
+}
+
+// ------------------------------------
+float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
+  unsigned int genMax, nlimit=512;
+  unsigned int randCut;
+  unsigned int i, item, sum;
+  
+  srand(314159); // set for repeatabilty on use of rand()
+  randCut = 314159;   //
+  sum=0;
+  genMax=2*nlimit; // genMax must be a multiple of nlimit
+
+  for (i=0; i<genMax; i++) 
+  {
+    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
+    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
+    else if (algo==3) item = MillerShuffle      (i, randCut, nlimit); 
+    else if (algo==4) item = MillerShuffle_lite (i, randCut, nlimit); 
+    sum += item;
+  }
+
+  //printf("   Algorithm %d (255.5)Mean: %.2f\n",algo,(float)sum/genMax);
+  return ((float)sum/genMax);
 }
