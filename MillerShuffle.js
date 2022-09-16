@@ -62,7 +62,7 @@ var opti=0; // global, OPTional return Index
 // Preferred for Shuffles used for dealing to competing players.
 function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
   var xi,si;
-  if ((inx%listSize)==0) opti=MillerShuffle(listSize-1, shuffleID, listSize);
+  if ((inx%listSize)==0) opti=MillerShuffle(inx+listSize-1, shuffleID, listSize);
  
   si=MillerShuffle(inx, shuffleID, listSize);
 
