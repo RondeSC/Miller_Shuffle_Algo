@@ -12,7 +12,7 @@ Characteristics of the Miller Shuffle algorithm (not variant -B)
   * Provides a pseudo random, yet unique, index within a given stated range and a value from that range. 
   * does Not require RAM memory for an array (saves 2 * size of the # of indexes, over FYA)
   * No upfront processing. Minimal processing to generate any shuffled index on the fly.
-  * does Not need a record of past plays in order to go back through selections (like using random() would)
+  * Deterministic. Does not need a record of past plays in order to go back through selections (like using random() would)
   * Not dependent on a system PRNG.
 
 In applications where an even distribution of expected patterns like a given pair of cards from a 'shuffled' deck is near esseniencial there is room for improvement. To handle this, I devised the Miller Shuffle Algo-b. I can only see where this could be considered to be earnestly needed is where money is involved, like in a casino gaming machine.
@@ -21,8 +21,7 @@ Characteristics of the Miller Shuffle algorithm B
   * Provides a pseudo random, yet unique, index within a given stated range and a value from that range.
   * does Not require RAM memory for an array (2 * size of the # of indexes, like FYA)
   * Any given combinations occur as Expected over a period of time.
-  * If there is a functional need to back track history, a record would need to be kept. In the foreseen application this would not be needed. (Diagnostic 
-recreation is though possible by way of re-seeding the system pseudo random generator and replaying from the beginning of a session.)
+  * Non-deterministic. If there is a functional need to back track history, a record would need to be kept. In the foreseen application this would not be needed. (Diagnostic recreation is though possible by way of re-seeding the system pseudo random generator and replaying from the beginning of a session.)
   * does utilize system's Pseudo Random Number Generator
 
 Their statistical behavior has been extensively tested, honed and validated.
