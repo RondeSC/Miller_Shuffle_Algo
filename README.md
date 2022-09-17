@@ -8,7 +8,7 @@ The Fisher-Yates (aka Knuth) algorithm has been a solution that fixes this unwan
 
 The algorithm I present here (refered to as the Miller Shuffle algorithm) provides basically the same beneficial functionality with a comparable level of randomness, without the need of any array or upfront processing, and does not utilizing a PRNG. It essentially is what I would call a Pseudo Random Index Generator (PRIG).
 
-Characteristics of the Miller Shuffle algorithm (all variants but -B)
+Characteristics of the Miller Shuffle algorithm (not variant -B)
   * Provides a pseudo random, yet unique, index within a given stated range and a value from that range. 
   * does Not require RAM memory for an array (saves 2 * size of the # of indexes, over FYA)
   * No upfront processing. Minimal processing to generate any shuffled index on the fly.
@@ -21,8 +21,9 @@ Characteristics of the Miller Shuffle algorithm B
   * Provides a pseudo random, yet unique, index within a given stated range and a value from that range.
   * does Not require RAM memory for an array (2 * size of the # of indexes, like FYA)
   * Any given combinations occur as Expected over a period of time.
-  * If there is a functional need to back track history, a record would need to be kept. In the foreseen application this would not be needed. (Diagnostic     * does utilize system's Pseudo Random Number Generator
+  * If there is a functional need to back track history, a record would need to be kept. In the foreseen application this would not be needed. (Diagnostic 
 recreation is though possible by way of re-seeding the system pseudo random generator and replaying from the beginning of a session.)
+  * does utilize system's Pseudo Random Number Generator
 
 Their statistical behavior has been extensively tested, honed and validated.
 For more details, randomness statistics and efficacy analysis, of the Miller Shuffle Algo see:
