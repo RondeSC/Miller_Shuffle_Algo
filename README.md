@@ -24,6 +24,9 @@ Characteristics of the Miller Shuffle algorithm B
   * Non-deterministic. If there is a functional need to back track history, a record would need to be kept. In the foreseen application this would not be needed. (Diagnostic recreation is though possible by way of re-seeding the system pseudo random generator and replaying from the beginning of a session.)
   * does utilize system's Pseudo Random Number Generator
 
+Note that while you don't get any repeats within a Fisher-Yates shuffle, new session reshuffles (done with FY) result in session to session repeats. Further these unrequested re-shuffles result in loss of play history.
+When utilizing a Miller Shuffle algorithm, a logical index and a shuffleID are all that needs to be retained in order to continue where one left off.
+
 Their statistical behavior has been extensively tested, honed and validated.
 For more details, randomness statistics and efficacy analysis, of the Miller Shuffle Algo see:
 https://www.instructables.com/Miller-Shuffle-Algorithm/
@@ -58,6 +61,13 @@ album ChiSq: of album distrution (tested as 40 albums of 13 songs each)
 early repeats: of an album ('early' value set arbitrarily)
 dealt pair: average min&max counts of a pair (eg: AceSpades+JackHearts) dealt to one of 10 players out of >26,000 shuffles dealt
 ```
+
+As if pseudo randomness had not been covered enough...
+
+Having developed Signal Processing Software in the past, I thought to do some frequency analysis on the shuffle index data.
+Knowing that true random data should contain minimal signal levels at any one frequency
+(see google sheet: https://docs.google.com/spreadsheets/d/1RVwz7cU0CNlTK5enxMkLoOTPnRUN5b5pSYV5Rjto1h8/edit?usp=sharing )
+
 Supporting the shuffling of a larger number of items.
 ----------------------------------------------------
 If you want or have a need to support many thousands of items then select prime numbers for p1&p2 above that.
