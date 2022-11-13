@@ -69,6 +69,8 @@ int main(int argc, char **argv)
 	}
 	printf("\n\n* Note the repeated letters in the rand() generated \"shuffles\".\n");
 	printf(" FisherYate's output would ~= MillerShuffle, but requires a persistent RAM array.\n\n");
+	printf(" With Fisher-Yates a new session requires a new shuffled array, you then get repeats between sessions.\n");
+	printf(" With the Miller Shuffle Algorithm you easily avoid all the (inter & intra-session) annoying repeats.\n\n");
 
 #ifdef _DEBUG
 	while(1); // so as to examine the stdout console, during dev.
