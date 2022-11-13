@@ -35,7 +35,7 @@ In this repository there is a simple executable program "exampleShuffles" using 
 
 29 Aug 22 Update:
 -----------------
-Added Miller Shuffle algo-C with a Combo of A&Bs advantages (algo_A features + algo_B's pair distribution)
+Added ***Miller Shuffle algo-C*** with a Combo of A&Bs advantages (algo_A features + algo_B's pair distribution)
 Also added a lite variation which for many applications will serve just fine.
 
 I have improved and expanded my testing, and added a sequence permutation test (akind to "Diehard test")
