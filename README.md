@@ -109,7 +109,7 @@ For very small values of "listSize" some randomness factors (e.g. output permuta
 Albeit, I don't think anyone generally could notice the difference, without doing a statistical analysis of a large sample.
 An example use case is where I selected 3 unique moles out of 5 in a whack-a-mole game:
 ```
-   mole1 = prig(i++, 5);
+   mole1 = prig(i++, 5);  // get 3 unique nums (0-4) from a PRIG function
    mole2 = prig(i++, 5);
    mole3 = prig(i++, 5);
 ```
