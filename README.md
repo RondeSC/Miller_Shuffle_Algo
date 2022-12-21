@@ -100,3 +100,17 @@ I also did several successful tests upto listsize of ~ 1 billion using these pri
 
     This can handle the whole Spotify and Apple Music song catalogs put together.
 ```
+Application note for use of small list sizes:
+------------------
+For very small values of "listSize" some randomness factors (e.g. output permutations) are better:
+  with MS-b over MS-c when listSize<50
+  with MS-lite over MS-c when listSize<30
+
+Albeit, I don't think anyone generally could notice the difference, without doing a statistical analysis of a large sample.
+An example use case is where I selected 3 unique moles out of 5 in a whack-a-mole game:
+```
+   mole1 = prig(i++, 5);
+   mole2 = prig(i++, 5);
+   mole3 = prig(i++, 5);
+```
+Here, I renamed the MS-lite function to prig(), and separately randomized a "shuffleID".
