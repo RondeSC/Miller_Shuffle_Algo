@@ -6,7 +6,9 @@ When implementing play-list shuffle algorithms, apparently some (even on big nam
 
 The Fisher-Yates (aka Knuth) algorithm has been a solution that fixes this unwanted repetition. The issue this algorithm does come with is the added burden of an array in RAM memory of 2 times the maximum number of songs (for up to 65,000 items 128KB of RAM is needed) being dedicated to shuffled indexes for the duration that access to additional items from the shuffle are desired. This is a significant issue for a resource limited microprocessor application as well as for an online service with millions upon millions of shuffle lists to maintain.
 
-The algorithm I present here (refered to as the Miller Shuffle algorithm) provides basically the same beneficial functionality with a comparable level of randomness, without the need of any array or upfront processing, and does not utilizing a PRNG. It essentially is what I would call a Pseudo Random Index Generator (PRIG).
+The algorithm I present here (refered to as the Miller Shuffle algorithm) provides basically the same beneficial functionality with a comparable level of randomness, without the need of any array or upfront processing, and does not utilizing a PRNG. It essentially is what I would call a Pseudo Random Index Generator (PRIG).  
+As defined herein, a Pseudo Random Index Generator (PRIG) returns each possible value in a range once and only once in a pseudo random order, with the input of a 'shuffleID' and a reference index (0 to N-1, generally used sequentially). 
+Additionally when utilizing a PRIG, there is no need for an array to serve as a play history record. You can simply decrement the reference index to step back through the play history.
 
 Characteristics of the Miller Shuffle algorithm (not variant -B)
   * Provides a pseudo random, yet unique, index within a given stated range and a value from that range. 
@@ -25,7 +27,7 @@ Characteristics of the Miller Shuffle algorithm B
   * does utilize system's Pseudo Random Number Generator
 
 Note that while you don't get any repeats within a Fisher-Yates shuffle, new session reshuffles (done with FY) result in session to session repeats. Further these unrequested re-shuffles result in loss of play history.
-When utilizing a Miller Shuffle algorithm, a logical index and a shuffleID are all that needs to be retained in order to continue where one left off.
+When utilizing a Miller Shuffle algorithm, a logical reference index and a shuffleID are all that needs to be retained in order to continue where one left off.
 
 Their statistical behavior has been extensively tested, honed and validated.
 For more details, randomness statistics and efficacy analysis, of the Miller Shuffle Algo see:
