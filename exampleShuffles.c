@@ -104,7 +104,7 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 }
 
 // ------------------------------------
-float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
+float MeanTest(int algo) {  // for nlimit=512 the mean Must be = 255.5 else there is a problem with the shuffle
   unsigned int genMax, nlimit=512;
   unsigned int randCut;
   unsigned int i, item, sum;
