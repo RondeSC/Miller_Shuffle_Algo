@@ -22,16 +22,18 @@ int main(int argc, char **argv)
 	unsigned int chks;
    
 	// verify algorithms
-	printf("\nChecksums for     MS_a,   MS_b,   MS_c,   MS_lite: \n              ");
-	for (algo=1; algo<=4; algo++) {
+	printf("\nChecksums for     MS_a,    MS_b,    MS_c,   MS_d,   MS_lite: \n");
+	printf(  "                 ......   ......");
+	for (algo=3; algo<=5; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
-	} // MS_a=1069168    MS_b=1041123 (depending on rand() implementation)   MS_c=1042866  MSlite=1030072
-	printf("\n should be:     1069168, 1041123, 1042866, 1030072.   note: MS_b is dependant on sys rand() implementation\n");
+	}
+	printf("\n should be:     6273191, 6162166, 6389589, 6344637, 6463017.   note: MS_b is dependant on sys rand() implementation\n");
+    // MSA_Max algoChkSum(6)=6417331
 
-	printf("\nMean must=255.5:");
-	for (algo=1; algo<=4; algo++) {
-		printf("  %.2f",MeanTest(algo));  // show algo chksum
+	printf("\nMean must=255.5:                ");
+	for (algo=3; algo<=5; algo++) {
+		printf("  %.2f ",MeanTest(algo));  // show algo chksum
 	}
 	printf("\n");
 
@@ -59,7 +61,7 @@ int main(int argc, char **argv)
 		printf("\n    %s  <- repeats\n    ",reps); // highlight the repeated selections
 		
 		for (i = 0; i < 52; i++) {
-			item = MillerShuffleAlgo_a(i, shuffleID, 52);
+			item = MillerShuffle(i, shuffleID, 52);
 			//     -----------------
 			if (item<26) c=item+'a';
 			else         c=item-26+'A';
@@ -68,7 +70,7 @@ int main(int argc, char **argv)
 
 	}
 	printf("\n\n* Note the repeated letters in the rand() generated \"shuffles\".\n");
-	printf(" FisherYate's output would ~= MillerShuffle, but requires a persistent RAM array.\n\n");
+	printf(" FisherYate's output would ~= MillerShuffle, but requires a persistent RAM array.\n");
 	printf(" With Fisher-Yates a new session requires a new shuffled array, you then get repeats between sessions.\n");
 	printf(" With the Miller Shuffle Algorithm you easily avoid all the (inter & intra-session) annoying repeats.\n\n");
 
@@ -83,28 +85,33 @@ int main(int argc, char **argv)
 unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
   unsigned int nlimit=256;
   unsigned int randCut;
-  unsigned int i, item, csum;
+  unsigned int i, item, csum, lim;
   char sh;
   
   srand(314159); // set for repeatabilty on use of rand()
   randCut = 314159;   //
   csum=sh=0;
-  for (i=0; i<nlimit; i++) 
-  {
-    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
-    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
-    else if (algo==3) item = MillerShuffle      (i, randCut, nlimit); 
-    else if (algo==4) item = MillerShuffle_lite (i, randCut, nlimit); 
-    csum += (item<<sh);
-    if (++sh==8) sh=0;
-  }
 
+  for (lim=nlimit; lim<(nlimit+3); lim++) {
+	  for (i=0; i<(2*lim); i++) 
+	  {
+	//    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
+	//    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
+		if (algo==3)      item = MillerShuffleAlgo_c(i, randCut, lim); 
+		else if (algo==4) item = MillerShuffle      (i, randCut, lim); // currently = MSA_d
+		else if (algo==5) item = MillerShuffle_lite (i, randCut, lim); 
+		else if (algo==6) item = MillerShuffle_Max (i, randCut, lim); 
+		csum += (item<<sh);
+		if (++sh==8) sh=0;
+	  }
+  }
   //printf("   Algorithm %d chkSum: %d\n",algo,csum);
   return (csum);
 }
 
 // ------------------------------------
-float MeanTest(int algo) {  // for nlimit=512 the mean Must be = 255.5 else there is a problem with the shuffle
+float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
+      // for nlimit=512 the mean Must be = 255.5 else there is a problem with the shuffle
   unsigned int genMax, nlimit=512;
   unsigned int randCut;
   unsigned int i, item, sum;
@@ -116,10 +123,12 @@ float MeanTest(int algo) {  // for nlimit=512 the mean Must be = 255.5 else ther
 
   for (i=0; i<genMax; i++) 
   {
-    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
-    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
-    else if (algo==3) item = MillerShuffle      (i, randCut, nlimit); 
-    else if (algo==4) item = MillerShuffle_lite (i, randCut, nlimit); 
+//    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
+//    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
+    if (algo==3) item = MillerShuffleAlgo_c(i, randCut, nlimit); 
+	else if (algo==4) item = MillerShuffle      (i, randCut, nlimit); 
+    else if (algo==5) item = MillerShuffle_lite (i, randCut, nlimit); 
+    else if (algo==6) item = MillerShuffle_Max (i, randCut, nlimit); 
     sum += item;
   }
 
