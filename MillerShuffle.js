@@ -8,6 +8,37 @@
 //
 // 29 Aug 22 Updated and added MillerShuffle_c(), also a _lite version
 //   the NEW Algo-C is by & large suitable to replace both algo-A and -B
+// Update April 2023 added Miller Shuffle Algo-D 
+//   The NEW Algo-D performs superiorly to earlier variants (~Fisher-Yates statistics).
+//   Optimized so as to generate greater permutations of possible shuffles over time.
+//   It is the perferred variant over algo_a _b & _c
+
+// --------------------------------------------------------------
+// Miller Shuffle Algorithm D variant     NEW April 2023
+//    aka:   MillerShuffleAlgo_d
+function MillerShuffle(inx, shuffleID, listSize) {
+  var si, r1, r2, r3, r4;
+  const p1=24317;
+  const p2=32141;
+  const p3=63629;  // for shuffling 60,000+ indexes (only needs 32bit unsigned math)
+  var randR;     //local randomizer copy
+
+  randR=shuffleID+131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
+  si=(inx+randR)%listSize;
+
+  r1=randR%p1;   // shuffle rx fixed values are not super important
+  r2=(r1+randR)%p2;
+  r3=(r1+r2+p3)%listSize;
+  r4=r1^r2^r3;
+
+  // perform the conditional multi-faceted mathematical spin-mixing
+  if (si%3==0) si=(((si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
+  if (si%2==0) si=(((si/2)*p2+r2) % Math.floor((listSize+1)/2)) *2; // spin multiples of 2 
+  if (si<Math.floor(listSize/2)) si=(si*p3+r4) % Math.floor(listSize/2);
+  si = (si*p3 + r3) % listSize;  // relatively prime gears turning operation
+  
+  return(si);  // return 'Shuffled' index
+}
 
 
 // --------------------------------------------------------
@@ -41,7 +72,7 @@ function MillerShuffleAlgo_a(inx, shuffleID, listSize) {
   randR+=Math.floor(inx/listSize);  // & have it effect the mix
   r1=randR%1009;  // constant value is not super important
   r2=((randR%1019)*p2)%listSize; // consecutive shuffleIDs now make more varied shuffles
-  si=(inx+shuffleID)%listSize;
+  si=(inx+randR)%listSize;
 
   /**** Heart of the Algorithm  *****/
   si = (si*p1 + r1) % listSize;        // spin prime gears
@@ -83,8 +114,8 @@ function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
 // 
 // Produces a shuffled Index given a base Index, a random seed and the length of the list being
 // indexed. For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
-//  aka: MillerShuffleAlgo_c
-function MillerShuffle(inx, shuffleID, listSize) {
+
+function MillerShuffleAlgo_c(inx, shuffleID, listSize) {
   var si,r1,r2;
   var p1=50021;  // for shuffling upto 50,000 indexes
   var p2=63629;  // ~= p1 * SQR(1.618) 
@@ -97,9 +128,9 @@ function MillerShuffle(inx, shuffleID, listSize) {
   while ((2*maxBin+1)<listSize) maxBin=2*maxBin+1;
   
   randR+=131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
-  r1=shuffleID%1009;   // constant values are not super important
-  r2=shuffleID%1019;
-  si=(inx+shuffleID)%listSize;
+  r1=randR%1009;   // constant values are not super important
+  r2=randR%1019;
+  si=(inx+randR)%listSize;
 
   /**** Heart of the Algorithm  *****/
   si = (si*p1 + r1) % listSize;  // relatively prime gears turning operation
@@ -108,7 +139,7 @@ function MillerShuffle(inx, shuffleID, listSize) {
     for (sh=0; (maxBin>>sh)>=si; sh++) ;  // set to do smart masked XOR operation
     si=si^((0x5555&maxBin)>>sh);      // note: operator order is important
   }
-  if (si%3==0) si=(((si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
+  if (si%3==0) si=(((si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
   si = (si*p2 + r2) % listSize; // turn more prime wheels
 
   return(si);              // return 'Shuffled' index
@@ -169,20 +200,23 @@ function DDeck_Shuffle(inx, listSize) {
 function algoChkSum(algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
   var nlimit=256;
   var randCut;
-  var i, item, csum;
+  var i, item, csum, lim;
   var sh;
   
   //srand(314159); // set for repeatabilty on use of rand()
   randCut = 314159;   //
   csum=sh=0;
-  for (i=0; i<nlimit; i++) 
-  {
-    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
-    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
-    else if (algo==3) item = MillerShuffle(i, randCut, nlimit); 
-    else if (algo==4) item = MillerShuffle_lite(i, randCut, nlimit); 
-    csum += (item<<sh);
-    if (++sh==8) sh=0;
+  for (lim=nlimit; lim<(nlimit+3); lim++) {
+	  for (i=0; i<(2*lim); i++) 
+	  {
+		if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
+		else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
+		else if (algo==3) item = MillerShuffleAlgo_c(i, randCut, lim); 
+		else if (algo==4) item = MillerShuffle(i, randCut, lim);		// currently = MSA_d
+		else if (algo==5) item = MillerShuffle_lite(i, randCut, lim); 
+		csum += (item<<sh);
+		if (++sh==8) sh=0;
+	  }
   }
   
   //printf("   Algorithm %d chkSum: %d\n",algo,csum);
