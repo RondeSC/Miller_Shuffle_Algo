@@ -39,7 +39,7 @@ unsigned int MillerShuffle(unsigned int inx, unsigned int shuffleID, unsigned in
   si=(inx+shuffleID)%listSize;
 
   r1=shuffleID%p1;   // shuffle rx fixed values are not super important
-  r2=(r1+shuffleID)%p2;
+  r2=((shuffleID*0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
 
@@ -243,7 +243,7 @@ unsigned int MillerShuffle_Max(unsigned int inx, unsigned int shuffleID, unsigne
   si=(inx+shuffleID)%listSize;
   
   r1=shuffleID%p1;   // fixed shuffle values are not super important
-  r2 = (r1+shuffleID)%p2;
+  r2=((shuffleID*0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
 
