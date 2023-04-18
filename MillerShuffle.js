@@ -27,7 +27,7 @@ function MillerShuffle(inx, shuffleID, listSize) {
   si=(inx+randR)%listSize;
 
   r1=randR%p1;   // shuffle rx fixed values are not super important
-  r2=(r1+randR)%p2;
+  r2=((randR*0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
 
