@@ -7,7 +7,7 @@ When implementing play-list shuffle algorithms, apparently some (even on big nam
 The Fisher-Yates (aka Knuth) algorithm has been a solution that fixes this unwanted repetition. The issue this algorithm does come with is the added burden of an array in RAM memory of 2 times the maximum number of songs (for up to 65,000 items 128KB of RAM is needed) being dedicated to shuffled indexes for the duration that access to additional items from the shuffle are desired. The array is normally maintained by the calling routine, and passed by reference to a function implementing the Fisher-Yates algorithm. This is a significant issue for a resource limited microprocessor application as well as for an online service with millions upon millions of shuffle lists to maintain.
 
 The algorithm I present here (refered to as the Miller Shuffle algorithm) provides basically the same beneficial functionality with a comparable level of randomness, without the need of any array or upfront processing, and does not utilizing a PRNG. 
-It reduces the algorithm's time complexity to O(1) from O(n) for Fisher-Yates and O(n^2) for naive implementations. It essentially is what could be called a Pseudo Random **Index** Generator (**PRIG**).  
+It reduces the algorithm's time complexity to O(1) from O(n) for Fisher-Yates and O(n^2) for naive implementations. It is essentially a [Pseudo Random **Index** Generator](https://en.wikipedia.org/wiki/Pseudorandom_index_generator) (**PRIG**).  
 As defined herein, a Pseudo Random Index Generator (PRIG) returns each possible value in a range once and only once in a pseudo random order, with the input of a 'shuffleID' and a reference index (0 to N-1, generally used sequentially). 
 Additionally when utilizing a PRIG, there is no need for an array to serve as a play history record. You can simply decrement the reference index to step back through the play history.
 
@@ -89,6 +89,8 @@ These tests (‘deal2’, ‘permu5k’ & ’-dv rand’) then guided the archit
 
 If you would like to compare the randomness and distribution test results, you can see them here [Statistics of Shuffle algorithms](https://docs.google.com/document/d/1tHUKb0QNdGcvMp39ofUcqJBImnKHFtMtx7zCVNSsNMU/edit). I don't think understanding of the internal test processes is needed. Simply use the results from Fisher-Yates and radiation data as references. Take into consideration that in general on re-running any test the results will possibly vary +/- 10%.  Where the results from using radiation data differ significantly with both MSA-d and Fisher-Yates is due to its randomness without the constraints of giving unique values over a range.
 
+Later, I tested using consecutive shuffleIDs instead of random ones and found that MillerShuffleAlgo-D continued to produce good random shuffles, but the distribution of shuffle permutations over time suffered some. I managed to resolve this with a simple change to the calculation of the ‘r2’ random factor (see code). Now, with this change, there is not even a need to use a PRNG function for the selection of shuffleIDs. When you’re ready for a new shuffle you can simply increment (shuffleID++).
+
 ***In the spirit of the 500+ horse-power commuter car, a solution looking for a problem:***  
 For general game and media play, I feel that MSA-d goes beyond what's needed in the way of random behavior. But for those who feel they need or want to take things to the max, beyond dwindling returns, I brought together a larger collection of various mathematical means to stir, mix, switch about, fold and resequence (“randomizing”) the index values in the creation of the MSA -Max variant. Its statistical performance is almost indistinguishable from that of Fisher-Yates.
 Note though, that the same level of results could have been obtained by using MSA-d twice.
@@ -142,7 +144,7 @@ Albeit, I don't think anyone generally could notice the difference, without doin
 An example use case is where I selected 3 unique moles out of 5 in a whack-a-mole game:
 ```
    mole1 = prig(i++, 5);  // get 3 unique nums (0-4) from a PRIG function
-   mole2 = prig(i++, 5);
+   mole2 = prig(i++, 5);  // without any re-iterative testing & handling for repeats
    mole3 = prig(i++, 5);
 ```
 Here, I renamed the MS-lite function to prig(), and separately randomized a "shuffleID".
