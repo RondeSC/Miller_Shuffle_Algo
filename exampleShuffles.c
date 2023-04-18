@@ -28,8 +28,8 @@ int main(int argc, char **argv)
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 	}
-	printf("\n should be:     6273191, 6162166, 6389589, 6344637, 6463017.   note: MS_b is dependant on sys rand() implementation\n");
-    // MSA_Max algoChkSum(6)=6417331
+	printf("\n should be:     6273191, 6162166, 6389589, 6355280, 6463017.   note: MS_b is dependant on sys rand() implementation\n");
+    // MSA_Max algoChkSum(6)=6476111
 
 	printf("\nMean must=255.5:                ");
 	for (algo=3; algo<=5; algo++) {
