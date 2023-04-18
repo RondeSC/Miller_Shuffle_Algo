@@ -89,7 +89,7 @@ These tests (‘deal2’, ‘permu5k’ & ’-dv rand’) then guided the archit
 
 If you would like to compare the randomness and distribution test results, you can see them here [Statistics of Shuffle algorithms](https://docs.google.com/document/d/1tHUKb0QNdGcvMp39ofUcqJBImnKHFtMtx7zCVNSsNMU/edit). I don't think understanding of the internal test processes is needed. Simply use the results from Fisher-Yates and radiation data as references. Take into consideration that in general on re-running any test the results will possibly vary +/- 10%.  Where the results from using radiation data differ significantly with both MSA-d and Fisher-Yates is due to its randomness without the constraints of giving unique values over a range.
 
-Later, I tested using consecutive shuffleIDs instead of random ones and found that MillerShuffleAlgo-D continued to produce good random shuffles, but the distribution of shuffle permutations over time suffered some. I managed to resolve this with a simple change to the calculation of the ‘r2’ random factor (see code). Now, with this change, there is not even a need to use a PRNG function for the selection of shuffleIDs. When you’re ready for a new shuffle you can simply increment (shuffleID++).
+**Later**, I tested using consecutive shuffleIDs instead of random ones and found that MillerShuffleAlgo-D continued to produce good random shuffles, but the distribution of shuffle permutations over time suffered some. I managed to resolve this with a simple change to the calculation of the ‘r2’ random factor (see code). Now, with this change, there is not even a need to use a PRNG function for the selection of shuffleIDs. When you’re ready for a new shuffle you can simply increment (shuffleID++).
 
 ***In the spirit of the 500+ horse-power commuter car, a solution looking for a problem:***  
 For general game and media play, I feel that MSA-d goes beyond what's needed in the way of random behavior. But for those who feel they need or want to take things to the max, beyond dwindling returns, I brought together a larger collection of various mathematical means to stir, mix, switch about, fold and resequence (“randomizing”) the index values in the creation of the MSA -Max variant. Its statistical performance is almost indistinguishable from that of Fisher-Yates.
@@ -108,7 +108,7 @@ If you want or have a need to support many thousands of items then select prime 
 The prime number values are not critical, but must be greater than any value of 'listsize' to be used.
 To help ensure pseudo randomness p2 should be ~= p1 times the golden ratio (1.618) or its square root.
 
-With the prime values below (now used in MSA-C) I tested with every value of 'listsize' from 2 to p1-1.
+With the prime values below (used in MSA-C) I tested with every value of 'listsize' from 2 to p1-1.
 These are about as large as these can be, such that the variables in the algorithm only need to be 16bit unsigned, and the math 32 bits unsigned (I think, the easiest way to insure that is to use 32bit unsigned variables).
 Given that the unsigned int variables are implemented as 32 bits, the (unsigned long) type casts in the code are unnecessary (they are needed for 8bit Arduinos).
 ```
@@ -136,8 +136,7 @@ I also did several successful tests upto listsize of ~ 1 billion using these pri
 ```
 Application note for use of small list sizes:
 ------------------
-For very small values of "listSize" some randomness factors (e.g. output permutations) are better:
-  with MS-d over any earlier variant. MS-lite is as acceptable as it ever is.
+For very small values of "listSize" some randomness factors (e.g. distribution of permutations) are tough, and MS-a, MS-b and somewhat MS-c are not the best. The latest variant, **MS-d does perform the best** over any earlier variant (=F-Y). MS-lite is as acceptable as it ever is.
 
 Albeit, I don't think anyone generally could notice the difference, without doing a statistical analysis of a large sample.
 An example use case is where I selected 3 unique moles out of 5 in a whack-a-mole game:
