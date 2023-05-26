@@ -22,17 +22,17 @@ int main(int argc, char **argv)
 	unsigned int chks;
    
 	// verify algorithms
-	printf("\nChecksums for     MS_a,    MS_b,    MS_c,   MS_d,   MS_lite: \n");
-	printf(  "                 ......   ......");
-	for (algo=3; algo<=5; algo++) {
+	printf("\nChecksums for     MS_d,   MS_e,   MS_lite: \n");
+	printf(  "               ");
+	for (algo=4; algo<=6; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 	}
-	printf("\n should be:     6273191, 6162166, 6389589, 6355280, 6463017.   note: MS_b is dependant on sys rand() implementation\n");
+	printf("\n should be:      6255280, 6254037, 6246649.\n");
     // MSA_Max algoChkSum(6)=6476111
 
-	printf("\nMean must=255.5:                ");
-	for (algo=3; algo<=5; algo++) {
+	printf("\nMean must=255.5: ");
+	for (algo=4; algo<=6; algo++) {
 		printf("  %.2f ",MeanTest(algo));  // show algo chksum
 	}
 	printf("\n");
@@ -97,10 +97,11 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 	  {
 	//    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
 	//    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
-		if (algo==3)      item = MillerShuffleAlgo_c(i, randCut, lim); 
-		else if (algo==4) item = MillerShuffle      (i, randCut, lim); // currently = MSA_d
-		else if (algo==5) item = MillerShuffle_lite (i, randCut, lim); 
-		else if (algo==6) item = MillerShuffle_Max (i, randCut, lim); 
+	//	if (algo==3)      item = MillerShuffleAlgo_c(i, randCut, lim); 
+		if (algo==4) item = MillerShuffle      (i, randCut, lim); // currently = MSA_d
+		else if (algo==5) item = MillerShuffleAlgo_e      (i, randCut, lim);
+		else if (algo==6) item = MillerShuffle_lite (i, randCut, lim); 
+		else if (algo==7) item = MillerShuffle_Max (i, randCut, lim); 
 		csum += (item<<sh);
 		if (++sh==8) sh=0;
 	  }
@@ -125,10 +126,11 @@ float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and 
   {
 //    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
 //    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
-    if (algo==3) item = MillerShuffleAlgo_c(i, randCut, nlimit); 
-	else if (algo==4) item = MillerShuffle      (i, randCut, nlimit); 
-    else if (algo==5) item = MillerShuffle_lite (i, randCut, nlimit); 
-    else if (algo==6) item = MillerShuffle_Max (i, randCut, nlimit); 
+//    if (algo==3) item = MillerShuffleAlgo_c(i, randCut, nlimit); 
+	if (algo==4) item = MillerShuffle      (i, randCut, nlimit); 
+    else if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
+    else if (algo==6) item = MillerShuffle_lite (i, randCut, nlimit); 
+    else if (algo==7) item = MillerShuffle_Max (i, randCut, nlimit); 
     sum += item;
   }
 
