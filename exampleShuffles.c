@@ -21,6 +21,11 @@ int main(int argc, char **argv)
 	int algo;
 	unsigned int chks;
    
+	printf("\nFirst we'll valid the MillerShuffle algorithms' implementation ensuring that they'll deliver the performance\n"); 
+	printf("seen in their testing results during development. This is done by check-summing their output given specific\n"); 
+	printf("inputs, which is repeatable due to their deterministic feature. \n");
+	printf("Note that any changes in an algorithm can result in undesirable patterns in the shuffles produced.\n");
+
 	// verify algorithms
 	printf("\nChecksums for     MS_d,   MS_e,   MS_lite: \n");
 	printf(  "               ");
@@ -28,7 +33,7 @@ int main(int argc, char **argv)
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 	}
-	printf("\n should be:      6255280, 6254037, 6246649.\n");
+	printf("\n should be:      6323985, 6182001, 6282094.\n");
     // MSA_Max algoChkSum(6)=6476111
 
 	printf("\nMean must=255.5: ");
@@ -74,13 +79,17 @@ int main(int argc, char **argv)
 	printf(" With Fisher-Yates a new session requires a new shuffled array, you then get repeats between sessions.\n");
 	printf(" With the Miller Shuffle Algorithm you easily avoid all the (inter & intra-session) annoying repeats.\n\n");
 
+	//for (i = 0; i < 52; i++) {  // quick sanity check test of random()
+	//	printf("random(52): %d \t  random(0): %u \n", random(52), random(0));
+	//}
+
 #ifdef _DEBUG
 	while(1); // so as to examine the stdout console, during dev.
 #endif
 	return(0);
 }
 
-
+//			 Local Utilities
 // ------------------------------------
 unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
   unsigned int nlimit=256;
@@ -93,7 +102,7 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
   csum=sh=0;
 
   for (lim=nlimit; lim<(nlimit+3); lim++) {
-	  for (i=0; i<(2*lim); i++) 
+	  for (i=0; i<(2*lim); i++) // '2*' in order to exercise input inx overflow feature
 	  {
 	//    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
 	//    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
@@ -101,7 +110,7 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 		if (algo==4) item = MillerShuffle      (i, randCut, lim); // currently = MSA_d
 		else if (algo==5) item = MillerShuffleAlgo_e      (i, randCut, lim);
 		else if (algo==6) item = MillerShuffle_lite (i, randCut, lim); 
-		else if (algo==7) item = MillerShuffle_Max (i, randCut, lim); 
+		//else if (algo==7) item = MillerShuffle_Max (i, randCut, lim); 
 		csum += (item<<sh);
 		if (++sh==8) sh=0;
 	  }
@@ -130,10 +139,21 @@ float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and 
 	if (algo==4) item = MillerShuffle      (i, randCut, nlimit); 
     else if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
     else if (algo==6) item = MillerShuffle_lite (i, randCut, nlimit); 
-    else if (algo==7) item = MillerShuffle_Max (i, randCut, nlimit); 
+    //else if (algo==7) item = MillerShuffle_Max (i, randCut, nlimit); 
     sum += item;
   }
 
   //printf("   Algorithm %d (255.5)Mean: %.2f\n",algo,(float)sum/genMax);
   return ((float)sum/genMax);
+}
+
+// ------------------------------------
+unsigned int random(unsigned int limit) {  // 15 bit to full 32bit PRNG hack (~= arduino 'random()')
+	unsigned int randv;
+
+	// -----------  collect 32 bits from 3 15-bit rand() values
+	randv = ((unsigned int) rand()<<17) | rand()<<2 | rand()>>13;
+
+	if (limit!=0) randv = randv % limit;   // with limit==0 provide maximum range results
+	return(randv);
 }
