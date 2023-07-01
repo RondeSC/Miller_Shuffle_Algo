@@ -14,6 +14,8 @@
 //   It is the perferred variant over algo_a _b & _c
 // Update May 2023 added Miller Shuffle Algo-E
 //   Removed MSA-A and MSA-C as obsolite, having no use cases not better served by MS-lite or MSA-D
+// Update June 2023: greatly increased the potential number by unique shuffle permutations for MSA_d & MSA_e
+//    Also improved the randomness and permutations of MS_lite.
 //
 
 
@@ -29,10 +31,10 @@
 // as the code effectively uses a secondary shuffle by way of using a 'working' modified value of the input shuffle ID.
 
 // --------------------------------------------------------------
-// Miller Shuffle Algorithm D variant      April 2023
+// Miller Shuffle Algorithm D variant
 //    aka:   MillerShuffleAlgo_d
 function MillerShuffle(inx, shuffleID, listSize) {
-  var si, r1, r2, r3, r4;
+  var si, r1, r2, r3, r4, rx, rx2;
   const p1=24317;
   const p2=32141;
   const p3=63629;  // for shuffling 60,000+ indexes (only needs 32bit unsigned math)
@@ -41,22 +43,27 @@ function MillerShuffle(inx, shuffleID, listSize) {
   randR=shuffleID+131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
   si=(inx+randR)%listSize;
 
-  r1=randR%p1;   // shuffle rx fixed values are not super important
+  r1=randR%p1+42;
   r2=((randR*0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
+  rx = Math.floor(randR/listSize) % listSize + 1;
+  rx2 = Math.floor(randR/listSize/listSize) % listSize + 1;
 
-  // perform the conditional multi-faceted mathematical spin-mixing
+  // perform conditional multi-faceted mathematical spin-mixing (on avg 2 1/3 shuffle ops done + 2 simple Xors)
   if (si%3==0) si=(((si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
   if (si%2==0) si=(((si/2)*p2+r2) % Math.floor((listSize+1)/2)) *2; // spin multiples of 2 
   if (si<Math.floor(listSize/2)) si=(si*p3+r4) % Math.floor(listSize/2);
+
+  if ((si^rx) < listSize)   si=si^rx;			// flip some bits with Xor
   si = (si*p3 + r3) % listSize;  // relatively prime gears turning operation
+  if ((si^rx2) < listSize)  si=si^rx2;
   
   return(si);  // return 'Shuffled' index
 }
 
 // --------------------------------------------------------------
-// Miller Shuffle Algorithm E variant     May 2023
+// Miller Shuffle Algorithm E variant
 // Produces nearly the same randomness within the shuffles as MSA-d,
 // with changes and added code to increase the potential number of shuffle permutations generated. 
 // 
@@ -71,19 +78,24 @@ function MillerShuffleAlgo_e(inx, shuffleID, listSize) {
   si=(inx+randR)%listSize;    // cut the deck
 
   // compute fixed randomizing values once for a given shuffle
-  r1 = randR % 0x5FFF;
+  r1 = randR % 0x5FFF + 1;
   r2 = (randR+r1) % p1;
   r3 = randR % p2;
   r4 = ((randR * 0x89) ^ r3) % p3;
   halfN = Math.floor(listSize/2)+1;
+  rx = Math.floor(randR/listSize) % listSize + 1;
+  rkey = Math.floor(randR/listSize / listSize) % listSize + 1;
 
-  // perform the conditional multi-faceted mathematical spin-mixing (on avg 2 5/6 shuffle ops done)
+  // perform the conditional multi-faceted mathematical mixing (on avg 2 5/6 shuffle ops done + 2 simple Xors)
   if (si%3==0)      si = (((si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
   if (si <= halfN) {si = (si + r3) % (halfN + 1); si = halfN - si;}  // improves large permu distro
   if (si%2==0)      si = (((si/2)*p2+r2) % Math.floor((listSize+1)/2)) *2; // spin multiples of 2 
   if (si < halfN)   si = (si * p3 + r3) % halfN;
-  si = (si*p3 + r4) % listSize;  // relatively prime gears churning operation
   
+  if ((si^rx) < listSize)   si ^= rx;			// flip some bits with Xor
+  si = (si*p3 + r4) % listSize;  // relatively prime gears churning operation
+  if ((si^rkey) < listSize)  si ^= rkey;
+ 
   return(si);  // return 'Shuffled' index
 }
 
@@ -123,22 +135,29 @@ function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
 // to acheive good randomness along with desirable shuffle characteristics. (eg: in an 8-bit MCU project)
 // For a simple shuffle this works really well; unlike using rand() which does not. (used by DDesk_Shuffle)
 function MillerShuffle_lite(inx, shuffleID, listSize) {
-  var si, r1, r2;
-  var p1=3343;
-  var p2=9973;  // this prime must be > listSize used
-  var topEven; 
+  var si, r1, r2, r3, r4, rx;
+  var p1=3343, p2=5413;
+  var p3=9973;  // this prime must be > listSize used
+  var randR, topEven, halfN; 
 
-  shuffleID+=131*Math.floor(inx/listSize);  // have inx overflow effect the mix
-  si=(inx+shuffleID)%listSize;   // cut the deck
+  randR=shuffleID+131*Math.floor(inx/listSize);  // have inx overflow effect the mix
+  si=(inx+randR)%listSize;   // cut the deck
 
   topEven = listSize - (listSize & 1); // compute reference value  
-  r1 = shuffleID % 0xFFF;		// improvemed randomizing values
-  r2 = shuffleID % 0x3FFF ^ r1; 
+  halfN = Math.floor((listSize+1) / 2);
+  r1 = randR % 0xFFF + 1;		// improvemed randomizing values
+  r2 = randR % 0x2FFF + 2; 
+  r3 = Math.floor(randR/881) + 3;
+  r4 = Math.floor(randR/listSize) % listSize + 1;
+  rx = Math.floor(randR/listSize/listSize) % listSize + 1;
 
-  // note: the next line operates only 1/3 the time, the following line 1/2
-  if (si%3==0) si=((Math.floor(si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
-  if (si&1)    si=topEven-si;    // reverse flow of odd #s
-  si = (si*p2 + r2) % listSize;  // turn more prime wheels
+  // perform conditional multi-faceted mathematical mixing (on avg 1 5/6 shuffle ops + a simple Xor op)
+  if (si%3==0) si=(((si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
+  if (si&1)    si=(2*r2 + topEven - si) % topEven;			// reverse+rotate flow of odd #s
+  if ((si^rx)<listSize)  si=si^rx;							// flip some bits with Xor
+  // mix Differently 1/2 the range one way & the other another way
+  if (si<halfN) si = (si*p2 + r3) % halfN + halfN-(listSize & 1);
+  else          si = ((si-halfN) * p3 + r4) % (listSize-halfN);
   
   return(si);  // return 'Shuffled' index
 }
@@ -173,7 +192,7 @@ function algoChkSum(algo) {  // does a Simple Shifting Check Sum (both value and
   randCut = 314159;   //
   csum=sh=0;
   for (lim=nlimit; lim<(nlimit+3); lim++) {
-	  for (i=0; i<(2*lim); i++) 
+	  for (i=0; i<(2*lim); i++)  // '2*' in order to exercise input inx overflow feature
 	  {
 		//if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
 		if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
