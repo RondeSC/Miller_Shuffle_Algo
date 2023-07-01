@@ -44,19 +44,19 @@ MillerShuffleAlgo_e (& MSA_d) have had two simple XOR operations added. While no
 MS_lite also was updated and now is better than MSA_a, MSA_c and the original MSA_b were. The checksum values for the algorithms were accordingly updated.
 
 ```
-                        dv     Geo.  Permu   repeated-shuffles
-                ChiSq  ChiSq   err    devi   /million  first@
-MSA_d
-    prior:       261    355   1.35%   59.6    32968     2107
-    updated:     254    282   1.27%   29.1      29    127601
-MSA_e
-    prior:       263    363   1.40%   41.5     290     43742
-    updated:     261    303   1.16%   27.4      10    196568
+                        dv     Geo.  Permu   repeated-shuffles   r2D
+                ChiSq  ChiSq   err    devi   /million  first@    Mark
 MSlite
-    prior:       489    546   1.80%   60.1     903k      493
-    updated:     283    365   1.36%   37.6      250    62722
-
-Nominal:         255    255     <<     <        <<       >>
+    prior:       489    546   4.24%   60.1     903k      493     1.95
+    updated:     283    365   1.82%   37.6      250    62722     0.88
+MSA_d
+    prior:       257    351   1.64%   58.6    32968     2107     0.84
+    updated:     254    282   1.50%   29.1      29    127601     0.65
+MSA_e
+    prior:       263    363   1.28%   41.5     290     43742     0.68
+    updated:     261    303   1.27%   27.4      10    196568     0.68
+	
+Nominal:         255    255     <<     <        <<       >>       <
 	
   Figures here are not directly comparable with earilier results,
   due to testing and shuffleID generation changes.
