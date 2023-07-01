@@ -14,6 +14,8 @@
 //   A -Max variant was also added, pushing (obsessively?) random-permutations to the limit.
 // Update May 2023 added Miller Shuffle Algo-E and improved MS-lite.
 //   Removed MSA-A and MSA-C as obsolite, having no use cases not better served by MS-lite or MSA-D
+// Update June 2023: greatly increased the potential number by unique shuffle permutations for MSA_d & MSA_e
+//    Also improved the randomness and permutations of MS_lite.
 //
 
 
@@ -32,63 +34,70 @@
 
 
 // --------------------------------------------------------------
-// Miller Shuffle Algorithm D variant     April 2023
+// Miller Shuffle Algorithm D variant
 //    aka:   MillerShuffleAlgo_d
 unsigned int MillerShuffle(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
-  unsigned int si, r1, r2, r3, r4;
-  const unsigned int p1=24317;
-  const unsigned int p2=32141;
-  const unsigned int p3=63629;  // for shuffling 60,000+ indexes (only needs 32bit unsigned math)
+  unsigned int si, r1, r2, r3, r4, rx, rx2;
+  const unsigned int p1=24317, p2=32141, p3=63629;  // for shuffling 60,000+ indexes
 
   shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
   si=(inx+shuffleID)%listSize;    // cut the deck
 
-  r1=shuffleID%p1;   // shuffle rx fixed values are not super important
+  r1=shuffleID%p1+42;   // shuffle rx fixed values are not super important
   r2=((shuffleID*0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
+  rx = (shuffleID/listSize) % listSize + 1;
+  rx2 = ((shuffleID/listSize/listSize)) % listSize + 1;
 
-  // perform the conditional multi-faceted mathematical spin-mixing
+  // perform conditional multi-faceted mathematical spin-mixing (on avg 2 1/3 shuffle ops done + 2 simple Xors)
   if (si%3==0) si=(((unsigned long)(si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
   if (si%2==0) si=(((unsigned long)(si/2)*p2+r2) % ((listSize+1)/2)) *2; // spin multiples of 2 
   if (si<listSize/2) si=(si*p3+r4) % (listSize/2);
+
+  if ((si^rx) < listSize)   si ^= rx;			// flip some bits with Xor
   si = ((unsigned long)si*p3 + r3) % listSize;  // relatively prime gears turning operation
-  
+  if ((si^rx2) < listSize)  si ^= rx2;
+	
   return(si);  // return 'Shuffled' index
 }
 
 
 // --------------------------------------------------------------
-// Miller Shuffle Algorithm E variant     May 2023
+// Miller Shuffle Algorithm E variant
 // Produces nearly the same randomness within the shuffles as MSA-d,
 // with changes and added code to increase the potential number of shuffle permutations generated. 
 // 
 
 unsigned int MillerShuffleAlgo_e(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   static unsigned int si, r1, r2, r3, r4;
-  static unsigned int randR, halfN;
-  const unsigned int p1=24317;
-  const unsigned int p2=32141;
-  const unsigned int p3=63629; // for shuffling >60,000 indexes (only needs 32bit unsigned math)
+  static unsigned int randR, halfN, rx, rkey;
+  const unsigned int p1=24317, p2=32141, p3=63629; // good for shuffling >60,000 indexes
+  #define KEYCODE 0
 
   shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
   si=(inx+shuffleID)%listSize;    // cut the deck
 
   if (shuffleID!=randR) { // compute fixed randomizing values once for a given shuffle
 	  randR=shuffleID;   //local randomizer
-	  r1 = randR % 0x5FFF;
+	  r1 = randR % 0x5FFF+1;
 	  r2 = (randR+r1) % p1;
 	  r3 = randR % p2;
 	  r4 = ((randR * 0x89) ^ r3) % p3;
 	  halfN = listSize/2 + 1;
+	  rx = ((randR / listSize) ^ KEYCODE) % listSize + 1;		// shuffles can be customized by using a KEYCODE
+	  rkey = ((randR / listSize / listSize) ^ KEYCODE) % listSize + 1;
   }
   
-  // perform the conditional multi-faceted mathematical mixing (on avg 2 5/6 shuffle ops done)
+  // perform the conditional multi-faceted mathematical mixing (on avg 2 5/6 shuffle ops done + 2 simple Xors)
   if (si%3==0)       si = (((unsigned long)(si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
   if (si <= halfN)  {si = (si + r3) % (halfN + 1); si = halfN - si;}  // improves large permu distro
   if (si%2==0)       si = (((unsigned long)(si/2)*p2+r2) % ((listSize+1)/2)) *2; // spin multiples of 2 
   if (si < halfN)    si = (si * p3 + r3) % halfN;
+
+  if ((si^rx) < listSize)   si ^= rx;			// flip some bits with Xor
   si = ((unsigned long)si*p3 + r4) % listSize;  // a relatively prime gears churning operation
+  if ((si^rkey) < listSize)  si ^= rkey;
   
   return(si);  // return 'Shuffled' index
 }
@@ -144,10 +153,12 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
 // This variation of the Miller Shuffle algorithm is for when you need/want minimal coding and processing, 
 // to acheive good randomness along with desirable shuffle characteristics. (eg: in an 8-bit MCU project)
 // For a simple shuffle this works really well; unlike using rand() which does not. (used by DDesk_Shuffle)
-// This variation now performs better than MSA-a did.
+// These variations (_xlite & _lite) now perform better than MSA_c did.
 // (as coded here the maximum valid listsize supported is 9973-1)
-unsigned int MillerShuffle_lite(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
-  unsigned int si, r1, r2, topEven;
+
+// extra lite, same processing load as _lite with a little less code/memory use.  Chi2: 368 (255) Geo err : 2.20%  1st repeat@:8754  chksum: 6161782
+unsigned int MillerShuffle_xlite(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
+  unsigned int si, r1, r2, r3, rx, topEven;
 
   shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
   si=(inx+shuffleID)%listSize;   // cut the deck
@@ -155,20 +166,55 @@ unsigned int MillerShuffle_lite(unsigned int inx, unsigned int shuffleID, unsign
   topEven = listSize - (listSize & 1); // compute reference value  
   r1 = shuffleID % 0xFFF;		// improved randomizing values
   r2 = shuffleID % 0x3FFF ^ r1; 
+  r3 = shuffleID / 881 + 3;
+  rx = (shuffleID / listSize) % listSize + 1;
 
   // note: the next line operates only 1/3 the time, the following line 1/2
   if (si%3==0) si=(((long)(si/3)*3343+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
-  if (si&1)    si=topEven-si;          // reverse flow of odd #s
-  si = ((long)si*9973 + r2) % listSize;  // turn more prime wheels
+  if (si&1)    si=(2*r2 + topEven - si) % topEven;			// reverse+rotate flow of odd #s
+  if ((si^rx)<listSize)  si ^= rx;							// flip some bits with Xor
+  si = ((long)si*9973 + r3) % listSize;  // turn more prime wheels
+  
+  return(si);  // return 'Shuffled' index
+}
+
+// MS Lite  Updated June 2023
+// with a little more coding (same processing load) and getting...   Chi2: 283 (255) Geo err: 1.82%   1st repeat@:62722
+unsigned int MillerShuffle_lite(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
+  static unsigned int si, r1, r2, r3, r4, rx;
+  static unsigned int randR, topEven, halfN;
+  const unsigned int p1=3343, p2=5413, p3=9973;
+
+  shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
+  si=(inx+shuffleID)%listSize;   // cut the deck
+
+  if (shuffleID!=randR) { // compute fixed randomizing values once for a given shuffle
+	  randR=shuffleID;
+	  topEven = listSize - (listSize & 1); // compute reference value  
+	  halfN = (listSize+1) / 2;
+	  r1 = shuffleID % 0xFFF + 1;		// improved randomizing values
+	  r2 = shuffleID % 0x2FFF + 2;
+	  r3 = shuffleID / 881 + 3;
+	  r4 = (shuffleID / listSize) % listSize + 1;
+	  rx = (shuffleID / listSize / listSize) % listSize + 1;
+  }
+
+  // perform conditional multi-faceted mathematical mixing (on avg 1 5/6 shuffle ops + a simple Xor op)
+  if (si%3==0) si=(((long)(si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
+  if (si&1)    si=(2*r2 + topEven - si) % topEven;				// reverse+rotate flow of odd #s
+  if ((si^rx)<listSize)  si ^= rx;							// flip some bits with Xor
+  // mix Differently 1/2 the range one way & the other another way
+  if (si<halfN) si = ((long) si*p2 + r3) % halfN + halfN-(listSize & 1);
+  else          si = ((long)(si-halfN) * p3 + r4) % (listSize-halfN);
   
   return(si);  // return 'Shuffled' index
 }
 
 
-// new Algo: taking the MillerShuffle to the MAX, doing whatever improved random permutations (even a little)
+/*** with latest update to MSA_e it is on par and in some ways better than this experimental Algo
+//     Algo: taking the MillerShuffle to the MAX, doing whatever improved random permutations (even a little)
 //                      ************************
-// note performance statistics are very = to Fisher-Yates  or  when double calling MillerShuffleAlgo_d ie:
-//      si = MSA_d( MSA_d(i,sid,lim), sid+p, lim);   // where p is a prime #
+// note performance statistics are very = to Fisher-Yates
 unsigned int MillerShuffle_Max(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int si, xi, r1, r2, r3, r4;
   unsigned int maxBin, topEven;
@@ -217,6 +263,7 @@ unsigned int MillerShuffle_Max(unsigned int inx, unsigned int shuffleID, unsigne
 
   return(si);  // return 'Shuffled' index
 }
+***/
 
 
 // here is a little fun aside
