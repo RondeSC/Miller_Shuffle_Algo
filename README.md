@@ -61,9 +61,15 @@ Nominal:         255    255     <<     <        <<       >>       <
   Figures here are not directly comparable with earilier results,
   due to testing and shuffleID generation changes.
 ```
+The repeated permutation statistics are from shuffling 52 items. As the number of items being shuffled goes above 200 the number of repeated shuffles per million approaches zero, for all current MillerShuffle variations including the MS eXtra lite version.
 
-If really needed, or for academic pursuit, the potential numbers of unique shuffle permutations could be improved by orders of magnitude by increasing the shuffleID beyond 32 bits and using those bits to increase the algorithm’s randomizing factors. Alternatively a second 32bit input value could be utilized. One easy way  to effectively do this is to do back to back shuffles ie: myItem = MShuffle(MShuffle(i,sID,n), sID2,n). With two randomly generated 32bit shuffleIDs. I found the results, doing the latter, indistinguishable from those of Fisher-Yates; and generated 0 repeated shuffles while testing the generation of billions of unique shuffle permutations (a billion-billions may be possible).  
+If really needed, or for academic pursuit, the potential numbers of unique shuffle permutations could be improved by orders of magnitude by increasing the shuffleID beyond 32 bits and using those bits to increase the algorithm’s randomizing factors. Alternatively a second 32bit input value could be utilized. One easy way  to effectively do this is to do back to back shuffles ie: myItem = MShuffle(MShuffle(i,sID,n), sID2,n). With two randomly generated 32bit shuffleIDs. I found the results, doing the latter, indistinguishable from those of Fisher-Yates; and generated 0 repeated shuffles while testing the generation of billions of unique shuffle permutations (a billion-billions may be possible).
+
 If you don’t mind giving up the deterministic feature, you can alternatively utilize MSA_b instead, for the improvement in permutation generation (of ~ x1000). It is likly that 99.9% of all applications could be best served by either MS_lite, MSA_d or MSA_e shuffle algorithms.
 
 I have included a function: random() to give 32bit pseudo random values (>4 billion) suitable for use as shuffleIDs. Using the C function rand(), as is, to set ‘shuffleID’s will yield about 32K unique shuffles, and may very well suit your needs.
- 
+ - - -
+Up until recently I have been getting tens of repeats/million from my 32b random function. Previous to that, I had been dealing with 100s/million.
+I tried almost everything and got nowhere improving on this, until I did. I am glad to report that I updated my random() function and now it will yield over 500 million unique values in a row. This is as coded, compiled with VS-C 2022, and ran on my PC; and is dependent on the associated rand() implementation. You may get different results with other development stacks. 
+So now the testing of MSA_d reports only 12 repeats/million, and MSA_e reports 0/million. Further testing of MSA_e results in Zero repeats out of the 500 million shuffles. No telling how many billions of 52 item shuffle permutations it could potentially provide.
+
