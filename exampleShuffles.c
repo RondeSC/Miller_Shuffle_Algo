@@ -152,7 +152,9 @@ unsigned int random(unsigned int limit) {  // 15 bit to full 32bit PRNG hack (~=
 	unsigned int randv;
 
 	// -----------  collect 32 bits from 3 15-bit rand() values
-	randv = ((unsigned int) rand()<<17) | rand()<<2 | rand()>>13;
+	//randv = ((unsigned int) rand()<<17) | rand()<<2 | rand()>>13;  // ~25 repeats/mil
+	randv = (unsigned int)rand() | (rand() << 15) | (rand() << 30);  // ~15 repeats/mil
+	rand();    // + addition of another rand() for: 0 repeats/500Mil !!!!!
 
 	if (limit!=0) randv = randv % limit;   // with limit==0 provide maximum range results
 	return(randv);
