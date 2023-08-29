@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 	}
-	printf("\n should be:      6323985, 6182001, 6282094.\n");
+	printf("\n should be:      6323985, 6142675, 6282094.\n");
     // MSA_Max algoChkSum(6)=6476111
 
 	printf("\nMean must=255.5: ");
