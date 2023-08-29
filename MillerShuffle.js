@@ -16,6 +16,7 @@
 //   Removed MSA-A and MSA-C as obsolite, having no use cases not better served by MS-lite or MSA-D
 // Update June 2023: greatly increased the potential number by unique shuffle permutations for MSA_d & MSA_e
 //    Also improved the randomness and permutations of MS_lite.
+// Update Aug 2023: updated MillerShuffleAlgo-E to rely on 'Chinese remainder theorem' to ensure unique randomizing factors
 //
 
 
@@ -78,10 +79,10 @@ function MillerShuffleAlgo_e(inx, shuffleID, listSize) {
   si=(inx+randR)%listSize;    // cut the deck
 
   // compute fixed randomizing values once for a given shuffle
-  r1 = randR % 0x5FFF + 1;
-  r2 = (randR+r1) % p1;
-  r3 = randR % p2;
-  r4 = ((randR * 0x89) ^ r3) % p3;
+  r1 = randR % p3;
+  r2 = randR % p1; // per Chinese remainder theorem, (r1,r2,r3) will be a unique set
+  r3 = randR % p2; 
+  r4 = randR % 2749;
   halfN = Math.floor(listSize/2)+1;
   rx = Math.floor(randR/listSize) % listSize + 1;
   rkey = Math.floor(randR/listSize / listSize) % listSize + 1;
