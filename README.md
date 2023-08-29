@@ -72,4 +72,8 @@ I have included a function: random() to give 32bit pseudo random values (>4 bill
 Up until recently I have been getting tens of repeats/million from my 32b random function. Previous to that, I had been dealing with 100s/million.
 I tried almost everything and got nowhere improving on this, until I did. I am glad to report that I updated my random() function and now it will yield over 500 million unique values in a row. This is as coded, compiled with VS-C 2022, and ran on my PC; and is dependent on the associated rand() implementation. You may get different results with other development stacks. 
 So now the testing of MSA_d reports only 12 repeats/million, and MSA_e reports 0/million. Further testing of MSA_e results in Zero repeats out of the 500 million shuffles. No telling how many billions of 52 item shuffle permutations it could potentially provide.
+ - - -
+Prior to Aug 2023, the randomizing factors (r1-rx) were set empirically for best test results. Now setting them to modulo values of different primes, where the primes multiplied together is greater than the SID 32bit value range ensures that the r-factors (e.g. r1,r2,r3) are a unique set per a corollary to the Chinese remainder theorem.  
+Doing this for the r-factors maximizes the potential shuffle permutations generated. This has little effect on the random nature of a given shuffle. Further I don’t consider that using different r-factors constitutes a different Miller Shuffle variant. The heart of a variant is determined by the algorithm making up its combined shuffle operations. This is also what predominantly determines the random nature of the shuffles generated.  
+The latest MillerShuffleAlgo -E has been updated accordingly.
 
