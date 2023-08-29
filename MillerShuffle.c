@@ -44,7 +44,7 @@ unsigned int MillerShuffle(unsigned int inx, unsigned int shuffleID, unsigned in
   shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
   si=(inx+shuffleID)%listSize;    // cut the deck
 
-  r1=shuffleID%p1+42;   // shuffle rx fixed values are not super important
+  r1=shuffleID%p1+42;   // randomizing factors crafted empirically (by automated trial and error)
   r2=((shuffleID*0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
@@ -82,7 +82,7 @@ unsigned int MillerShuffleAlgo_e(unsigned int inx, unsigned int shuffleID, unsig
   if (shuffleID!=randR) { // compute fixed randomizing values once for a given shuffle
 	  randR=shuffleID;   //local randomizer
 	  r1 = randR % p3;
-	  r2 = randR % p1; // per Chinese remainder theorem, (r1,r2,r3) will be a unique set
+	  r2 = randR % p1; // Now, per Chinese remainder theorem, (r1,r2,r3) will be a unique set
 	  r3 = randR % p2; 
 	  r4 = randR % 2749;
 	  halfN = listSize/2 + 1;
