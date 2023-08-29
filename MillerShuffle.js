@@ -44,7 +44,7 @@ function MillerShuffle(inx, shuffleID, listSize) {
   randR=shuffleID+131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
   si=(inx+randR)%listSize;
 
-  r1=randR%p1+42;
+  r1=randR%p1+42;	// randomizing factors crafted empirically (by automated trial and error)
   r2=((randR*0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
@@ -80,7 +80,7 @@ function MillerShuffleAlgo_e(inx, shuffleID, listSize) {
 
   // compute fixed randomizing values once for a given shuffle
   r1 = randR % p3;
-  r2 = randR % p1; // per Chinese remainder theorem, (r1,r2,r3) will be a unique set
+  r2 = randR % p1; // Now, per Chinese remainder theorem, (r1,r2,r3) will be a unique set
   r3 = randR % p2; 
   r4 = randR % 2749;
   halfN = Math.floor(listSize/2)+1;
