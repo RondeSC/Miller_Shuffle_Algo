@@ -19,6 +19,7 @@
 // Update Aug 2023: updated MillerShuffleAlgo-E to rely on 'Chinese remainder theorem' to ensure unique randomizing factors
 //
 
+#include "MillerShuffle.h"
 
 // --------------------------------------------------------------
 // the Miller Shuffle Algorithms
@@ -36,8 +37,7 @@
 
 // --------------------------------------------------------------
 // Miller Shuffle Algorithm D variant
-//    aka:   MillerShuffleAlgo_d
-unsigned int MillerShuffle(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
+unsigned int MillerShuffleAlgo_d(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int si, r1, r2, r3, r4, rx, rx2;
   const unsigned int p1=24317, p2=32141, p3=63629;  // for shuffling 60,000+ indexes
 
@@ -114,6 +114,11 @@ unsigned int MillerShuffleAlgo_e(unsigned int inx, unsigned int shuffleID, unsig
 // Better at randomixing pattern occurrences, providing very good sequence distribution over time.
 // As coded here -b internally depends on a standard version of an MS Algo.
 // Preferred for Shuffles used for dealing to Serious! competing players.
+// 
+// Use of MSA-b is not generally advised due to:  Besides this algo not being repeatable 1:1 between inx IN & OUT;
+// This algo won't work for concurrent or nested shuffles !
+// Further MSA-b shuffles must be started with inx=0 and end with inx=listSize-1.
+//
 unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int xi,si;
   static unsigned int opti=-1; // opt inx for swapping
@@ -215,6 +220,7 @@ unsigned int MillerShuffle_lite(unsigned int inx, unsigned int shuffleID, unsign
 /*** with latest update to MSA_e it is on par and in some ways better than this experimental Algo
 //     Algo: taking the MillerShuffle to the MAX, doing whatever improved random permutations (even a little)
 //                      ************************
+//     This function has been endeavored as an Academic Exercise. (& proving ground)
 // note performance statistics are very = to Fisher-Yates
 unsigned int MillerShuffle_Max(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int si, xi, r1, r2, r3, r4;
