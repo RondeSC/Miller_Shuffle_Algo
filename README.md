@@ -81,5 +81,5 @@ The latest MillerShuffleAlgo -E has been updated accordingly.
 **Dec 2023**, While implementing a game inspired by the Rubik cube I used a PRIG function with a limit of 3. I tested that I was getting good random mixes of the values 0,1,2 and I was. But I did many other tests and found that with a limit of 2 that some of the implemented shuffles failed at the task. I am not doing exhaustive testing on this.  
 Therefore, I state that the Miller Shuffle Algorithms are not qualified to do shuffles of less than 3 items.  
 
-You may be interested to know that I have developed a [Super-Shuffle](https://github.com/RondeSC/Super_Shuffle) for the prevention of inter shuffle bunching of like items.
+You may be interested to know that I have developed a [Super-Shuffle](https://github.com/RondeSC/Super_Shuffle) for the prevention of **inter shuffle** bunching of like items.
 
