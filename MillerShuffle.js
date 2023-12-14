@@ -78,7 +78,6 @@ function MillerShuffleAlgo_e(inx, shuffleID, listSize) {
   randR=shuffleID+131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
   si=(inx+randR)%listSize;    // cut the deck
 
-  // compute fixed randomizing values once for a given shuffle
   r1 = randR % p3;
   r2 = randR % p1; // Now, per Chinese remainder theorem, (r1,r2,r3) will be a unique set
   r3 = randR % p2; 
