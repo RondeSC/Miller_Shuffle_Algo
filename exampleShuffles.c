@@ -76,16 +76,16 @@ int main(int argc, char **argv)
 	}
 	printf("\n\n* Note the repeated letters in the rand() generated \"shuffles\".\n");
 	printf(" FisherYate's output would ~= MillerShuffle, but requires a persistent RAM array.\n");
-	printf(" With Fisher-Yates a new session requires a new shuffled array, you then get repeats between sessions.\n");
+	printf(" With Fisher-Yates a new session normally requires a new shuffled array, you then get repeats between sessions.\n");
 	printf(" With the Miller Shuffle Algorithm you easily avoid all the (inter & intra-session) annoying repeats.\n\n");
 
 	//for (i = 0; i < 52; i++) {  // quick sanity check test of random()
 	//	printf("random(52): %d \t  random(0): %u \n", random(52), random(0));
 	//}
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 	while(1); // so as to examine the stdout console, during dev.
-#endif
+//#endif
 	return(0);
 }
 
@@ -107,8 +107,8 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 	//    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
 	//    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
 	//	if (algo==3)      item = MillerShuffleAlgo_c(i, randCut, lim); 
-		if (algo==4) item = MillerShuffle      (i, randCut, lim); // currently = MSA_d
-		else if (algo==5) item = MillerShuffleAlgo_e      (i, randCut, lim);
+		if (algo==4)      item = MillerShuffleAlgo_d(i, randCut, lim);
+		else if (algo==5) item = MillerShuffleAlgo_e(i, randCut, lim);
 		else if (algo==6) item = MillerShuffle_lite (i, randCut, lim); 
 		//else if (algo==7) item = MillerShuffle_Max (i, randCut, lim); 
 		csum += (item<<sh);
@@ -136,7 +136,7 @@ float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and 
 //    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
 //    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
 //    if (algo==3) item = MillerShuffleAlgo_c(i, randCut, nlimit); 
-	if (algo==4) item = MillerShuffle      (i, randCut, nlimit); 
+    if (algo==4)      item = MillerShuffleAlgo_d (i, randCut, nlimit); 
     else if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
     else if (algo==6) item = MillerShuffle_lite (i, randCut, nlimit); 
     //else if (algo==7) item = MillerShuffle_Max (i, randCut, nlimit); 
