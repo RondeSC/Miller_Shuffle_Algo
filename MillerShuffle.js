@@ -111,6 +111,11 @@ var opti=0; // global, OPTional return Index
 // Better at randomixing pattern occurrences, providing very good sequence distribution over time.
 // As coded here -b internally depends on a standard version of an MS Algo.
 // Preferred for Shuffles used for dealing to Serious! competing players.
+// 
+// Use of MSA-b is not generally advised due to:  Besides this algo not being repeatable 1:1 between inx IN & OUT;
+// This algo won't work for concurrent or nested shuffles !
+// Further MSA-b shuffles must be started with inx=0 and end with inx=listSize-1.
+//
 function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
   var xi,si;
   if ((inx%listSize)==0) opti=MillerShuffle(inx+listSize-1, shuffleID, listSize);
