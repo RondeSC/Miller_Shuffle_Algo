@@ -27,17 +27,16 @@ int main(int argc, char **argv)
 	printf("Note that any changes in an algorithm can result in undesirable patterns in the shuffles produced.\n");
 
 	// verify algorithms
-	printf("\nChecksums for     MS_d,   MS_e,   MS_lite: \n");
+	printf("\nChecksums for     MS_d,   MS_e,   MS_lite,   MS_xlite: \n");
 	printf(  "               ");
-	for (algo=4; algo<=6; algo++) {
+	for (algo=4; algo<=7; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 	}
-	printf("\n should be:      6323985, 6142675, 6282094.\n");
-    // MSA_Max algoChkSum(6)=6476111
+	printf("\n should be:      6323985, 6142675, 6447339, 6174976.\n");
 
 	printf("\nMean must=255.5: ");
-	for (algo=4; algo<=6; algo++) {
+	for (algo=4; algo<=7; algo++) {
 		printf("  %.2f ",MeanTest(algo));  // show algo chksum
 	}
 	printf("\n");
@@ -110,7 +109,7 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 		if (algo==4)      item = MillerShuffleAlgo_d(i, randCut, lim);
 		else if (algo==5) item = MillerShuffleAlgo_e(i, randCut, lim);
 		else if (algo==6) item = MillerShuffle_lite (i, randCut, lim); 
-		//else if (algo==7) item = MillerShuffle_Max (i, randCut, lim); 
+		else if (algo==7) item = MillerShuffle_xlite(i, randCut, lim);  
 		csum += (item<<sh);
 		if (++sh==8) sh=0;
 	  }
@@ -139,7 +138,7 @@ float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and 
     if (algo==4)      item = MillerShuffleAlgo_d (i, randCut, nlimit); 
     else if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
     else if (algo==6) item = MillerShuffle_lite (i, randCut, nlimit); 
-    //else if (algo==7) item = MillerShuffle_Max (i, randCut, nlimit); 
+    else if (algo==7) item = MillerShuffle_xlite(i, randCut, nlimit); 
     sum += item;
   }
 
