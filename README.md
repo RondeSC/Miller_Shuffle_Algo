@@ -82,4 +82,6 @@ The latest MillerShuffleAlgo -E has been updated accordingly.
 Therefore, I state that the Miller Shuffle Algorithms are not qualified to do shuffles of less than 3 items.  
 
 You may be interested to know that I have developed a [Super-Shuffle](https://github.com/RondeSC/Super_Shuffle) for the prevention of **inter shuffle** bunching of like items.
-
+ - - -
+**Feb 2024**, MS_lite & MS_xlite have been greatly improved.
+Where you do need billions of unique shuffles use MSA_e. In cases, shuffling game items, cards, songs or wordle lists, where upwards of millions of unique shuffles are sufficient permutations for your needs, and still want excellent randomness within your shuffled items a lite MSA algorithm will give good service (or even the MSA-Xlite).  MS_xlite is now my default PRIG() function used in my game software.
