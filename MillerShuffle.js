@@ -17,6 +17,7 @@
 // Update June 2023: greatly increased the potential number by unique shuffle permutations for MSA_d & MSA_e
 //    Also improved the randomness and permutations of MS_lite.
 // Update Aug 2023: updated MillerShuffleAlgo-E to rely on 'Chinese remainder theorem' to ensure unique randomizing factors
+// Update Feb 2024: simplified and improved MS_lite
 //
 
 
@@ -131,38 +132,35 @@ function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
   return(si);
 }
 
-// --------------------------------------------------------
+
+// ---------------------- MS Lite 2024 Improved update,   [Now default PRIG() function in my game software]
 // Miller Shuffle lite, 
 // produces a shuffled Index given a base Index, a random seed and the length of the list being indexed
-// for each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
+// for each inx: 0 to nlim-1, unique indexes are returned in a pseudo "random" order.
 // 
 // This variation of the Miller Shuffle algorithm is for when you need/want minimal coding and processing, 
-// to acheive good randomness along with desirable shuffle characteristics. (eg: in an 8-bit MCU project)
-// For a simple shuffle this works really well; unlike using rand() which does not. (used by DDesk_Shuffle)
-function MillerShuffle_lite(inx, shuffleID, listSize) {
-  var si, r1, r2, r3, r4, rx;
-  var p1=3343, p2=5413;
-  var p3=9973;  // this prime must be > listSize used
-  var randR, topEven, halfN; 
+// to acheive good randomness along with desirable shuffle characteristics & many millions of permutations.
+// For a any shuffle this works really well; unlike using rand() which does not.  (used by DDesk_Shuffle)
+function MillerShuffle_lite(inx, mixID, nlim) {
+  var si, r1, r2, r3, rx;
+  var p1=3343;
+  var p2=9949, p3=9973;  // listSize must be smaller than these primes
+  var randR;
 
-  randR=shuffleID+131*Math.floor(inx/listSize);  // have inx overflow effect the mix
-  si=(inx+randR)%listSize;   // cut the deck
+  randR=mixID+131*Math.floor(inx/nlim);  // have inx overflow effect the mix
+  si=(inx+randR)%nlim;   // cut the deck
 
-  topEven = listSize - (listSize & 1); // compute reference value  
-  halfN = Math.floor((listSize+1) / 2);
-  r1 = randR % 0xFFF + 1;		// improvemed randomizing values
-  r2 = randR % 0x2FFF + 2; 
-  r3 = Math.floor(randR/881) + 3;
-  r4 = Math.floor(randR/listSize) % listSize + 1;
-  rx = Math.floor(randR/listSize/listSize) % listSize + 1;
+  r1 = randR % p3;	// set of fixed randomizing values
+  r2 = randR % p1;
+  r3 = randR % p2;
+  rx = Math.floor(randR/nlim) % nlim + 1;
 
-  // perform conditional multi-faceted mathematical mixing (on avg 1 5/6 shuffle ops + a simple Xor op)
-  if (si%3==0) si=(((si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
-  if (si&1)    si=(2*r2 + topEven - si) % topEven;			// reverse+rotate flow of odd #s
-  if ((si^rx)<listSize)  si=si^rx;							// flip some bits with Xor
-  // mix Differently 1/2 the range one way & the other another way
-  if (si<halfN) si = (si*p2 + r3) % halfN + halfN-(listSize & 1);
-  else          si = ((si-halfN) * p3 + r4) % (listSize-halfN);
+  // perform conditional multi-faceted mathematical spin-mixing 
+  if (si % 3 == 0) si = (((si / 3) * p1 + r1) % Math.floor((nlim + 2) / 3)) * 3; // spin-mix multiples of 3 
+  if (si % 2 == 0) si = (((si / 2) * p2 + r2) % Math.floor((nlim + 1) / 2)) * 2; // spin-mix multiples of 2 
+  if (si < rx) si = (si * p3 + r2) % rx;                       // mix random half one way
+  else         si = ((si - rx) * p2 + r1) % (nlim - rx) + rx;  // and the other another
+  si = (si * p3 + r3) % nlim;		// relatively prime gears churning operation
   
   return(si);  // return 'Shuffled' index
 }
