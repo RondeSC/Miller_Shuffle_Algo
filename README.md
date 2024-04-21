@@ -60,6 +60,8 @@ Nominal:         255    255     <<     <        <<       >>       <
 	
   Figures here are not directly comparable with earilier results,
   due to testing and shuffleID generation changes.
+
+This chart is outdated! Current figures are much better.
 ```
 The repeated permutation statistics are from shuffling 52 items. As the number of items being shuffled goes above 200 the number of repeated shuffles per million approaches zero, for all current MillerShuffle variations including the MS eXtra lite version.
 
