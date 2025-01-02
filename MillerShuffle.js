@@ -46,7 +46,7 @@ function MillerShuffle(inx, shuffleID, listSize) {
   si=(inx+randR)%listSize;
 
   r1=randR%p1+42;	// randomizing factors crafted empirically (by automated trial and error)
-  r2=((randR*0x89)^r1)%p2;
+  r2=Number(BigInt.asUintN(32, BigInt(randR*0x89)^BigInt(r1)))%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
   rx = Math.floor(randR/listSize) % listSize + 1;
