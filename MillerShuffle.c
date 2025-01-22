@@ -18,7 +18,7 @@
 //    Also improved the randomness and permutations of MS_lite.
 // Update Aug 2023: updated MillerShuffleAlgo-E to rely on 'Chinese remainder theorem' to ensure unique randomizing factors
 // Update Feb 2024: simplified and greatly improved MS_lite and MS_xlite. Fixed possible MSA_e edge case issue.
-//
+// Update Jan 2025: rework calculation of Randomizing Constants, to eliminate possible range rollovers issues.
 
 #include "MillerShuffle.h"
 
@@ -42,11 +42,11 @@ unsigned int MillerShuffleAlgo_d(unsigned int inx, unsigned int shuffleID, unsig
   unsigned int si, r1, r2, r3, r4, rx, rx2;
   const unsigned int p1=24317, p2=32141, p3=63629;  // for shuffling 60,000+ indexes
 
-  shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
-  si=(inx+shuffleID)%listSize;    // cut the deck
+  shuffleID ^= (inx/listSize);  // have inx overflow effect the mix
+  si=(inx+(shuffleID & 0x7FFFFFFF))%listSize;    // cut the deck
 
   r1=shuffleID%p1+42;   // randomizing factors crafted empirically (by automated trial and error)
-  r2=((shuffleID*0x89)^r1)%p2;
+  r2=((shuffleID/0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
   rx = (shuffleID/listSize) % listSize + 1;
@@ -55,7 +55,7 @@ unsigned int MillerShuffleAlgo_d(unsigned int inx, unsigned int shuffleID, unsig
   // perform conditional multi-faceted mathematical spin-mixing (on avg 2 1/3 shuffle ops done + 2 simple Xors)
   if (si%3==0) si=(((unsigned long)(si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
   if (si%2==0) si=(((unsigned long)(si/2)*p2+r2) % ((listSize+1)/2)) *2; // spin multiples of 2 
-  if (si<listSize/2) si=(si*p3+r4) % (listSize/2);
+  if (si<listSize/2) si=((unsigned long)si*p3+r4) % (listSize/2);
 
   if ((si^rx) < listSize)   si ^= rx;			// flip some bits with Xor
   si = ((unsigned long)si*p3 + r3) % listSize;  // relatively prime gears turning operation
@@ -77,8 +77,8 @@ unsigned int MillerShuffleAlgo_e(unsigned int inx, unsigned int shuffleID, unsig
   const unsigned int p1=24317, p2=32141, p3=63629; // good for shuffling >60,000 indexes
   #define KEYCODE 0
 
-  shuffleID+=131*(inx/listSize);  // have inx overflow effect the mix
-  si=(inx+shuffleID)%listSize;    // cut the deck
+  shuffleID ^= (inx/listSize);  // have inx overflow effect the mix
+  si=(inx + (shuffleID%listSize)) % listSize;    // cut the deck
 
   if (shuffleID!=randR) { // compute fixed randomizing values once for a given shuffle
 	  randR=shuffleID;   //local randomizer
@@ -95,7 +95,7 @@ unsigned int MillerShuffleAlgo_e(unsigned int inx, unsigned int shuffleID, unsig
   if (si%3==0)       si = (((unsigned long)(si/3)*p1+r1) % ((listSize+2)/3)) *3; // spin multiples of 3 
   if (si <= halfN)  {si = (si + r3) % (halfN + 1); si = halfN - si;}  // improves large permu distro
   if (si%2==0)       si = (((unsigned long)(si/2)*p2+r2) % ((listSize+1)/2)) *2; // spin multiples of 2 
-  if (si < halfN)    si = (si * p3 + r3) % halfN;
+  if (si < halfN)    si = ((unsigned long)si * p3 + r3) % halfN;
 
   if ((si^rx) < listSize)   si ^= rx;			// flip some bits with Xor
   si = ((unsigned long)si*p3 + r4) % listSize;  // a relatively prime gears churning operation
@@ -126,7 +126,7 @@ unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsig
   int seed=0;
 
   xi = (inx%listSize);      // allow an over zealous inx
-  shuffleID+=(inx/listSize);  // & have it effect the mix
+  shuffleID ^= (inx/listSize);  // & have it effect the mix
   
   if (opti==-1 || inx==0) {seed=1;}
   do {
@@ -173,8 +173,8 @@ short int MillerShuffle_xlite(short inx, unsigned long mixID, short nlim) {
 	const short p1 = 9949, p2 = 9973;  // limits nlim to < 9949
 	short si, r1, r2, rx;
 
-	mixID += 131 * (inx / nlim);  // have inx overflow effect the mix
-	si = (inx + mixID) % nlim;    // cut the deck
+	mixID ^= (inx / nlim);  // have inx overflow effect the mix
+	si = (inx + (mixID & 0x7FFFFFFF)) % nlim;    // cut the deck
 
 	r1 = mixID % p2;	// set of fixed randomizing values
 	r2 = mixID % p1;
@@ -196,8 +196,8 @@ short int MillerShuffle_lite(short inx, unsigned long mixID, short nlim) {
 	const short p1 = 3343, p2 = 9949, p3 = 9973;   // limits nlim to < 9949
 	short si, r1, r2, r3, rx;
 
-	mixID += 131 * (inx / nlim);  // have inx overflow effect the mix
-	si = (inx + mixID) % nlim;    // cut the deck
+	mixID ^= (inx / nlim);  // have inx overflow effect the mix
+	si = (inx + (mixID & 0x7FFFFFFF)) % nlim;    // cut the deck
 
 	r1 = mixID % p3;	// set of fixed randomizing values
 	r2 = mixID % p1;
