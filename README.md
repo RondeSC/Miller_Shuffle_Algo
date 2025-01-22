@@ -87,3 +87,6 @@ You may be interested to know that I have developed a [Super-Shuffle](https://gi
  - - -
 **Feb 2024**, MS_lite & MS_xlite have been greatly improved.
 Where you do need billions of unique shuffles use MSA_e. In cases, shuffling game items, cards, songs or wordle lists, where upwards of millions of unique shuffles are sufficient permutations for your needs, and still want excellent randomness within your shuffled items a lite MSA algorithm will give good service (or even the MSA-Xlite).  MS_xlite is now my default PRIG() function used in my game software.
+ - - -
+**Jan 2025**, After an edge case error, in the javascript version, which returned a negative number, it was determined there were some range rollover issues in the calculations of some of the Randomizing Constants. These were reworked such that there were not even slightly significant changes in the pseudo randomness statistics of any shuffle algorithm per comprehensive retesting.
+
