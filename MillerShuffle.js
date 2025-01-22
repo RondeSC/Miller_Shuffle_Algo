@@ -8,7 +8,7 @@
 //
 // 29 Aug 22 Updated and added MillerShuffle_c(), also a _lite version
 //   the NEW Algo-C is by & large suitable to replace both algo-A and -B
-// Update April 2023 added Miller Shuffle Algo-D 
+// Update April 2023 added Miller Shuffle Algo-D
 //   The NEW Algo-D performs superiorly to earlier variants (~Fisher-Yates statistics).
 //   Optimized so as to generate greater permutations of possible shuffles over time.
 //   It is the perferred variant over algo_a _b & _c
@@ -18,7 +18,7 @@
 //    Also improved the randomness and permutations of MS_lite.
 // Update Aug 2023: updated MillerShuffleAlgo-E to rely on 'Chinese remainder theorem' to ensure unique randomizing factors
 // Update Feb 2024: simplified and improved MS_lite
-//
+// Update Jan 2025: reworked Randomizing Constants, to stop range rollovers and javascript miss-handlings.
 
 
 // --------------------------------------------------------
@@ -34,19 +34,18 @@
 
 // --------------------------------------------------------------
 // Miller Shuffle Algorithm D variant
-//    aka:   MillerShuffleAlgo_d
-function MillerShuffle(inx, shuffleID, listSize) {
+function MillerShuffleAlgo_d(inx, shuffleID, listSize) {
   var si, r1, r2, r3, r4, rx, rx2;
   const p1=24317;
   const p2=32141;
   const p3=63629;  // for shuffling 60,000+ indexes (only needs 32bit unsigned math)
   var randR;     //local randomizer copy
 
-  randR=shuffleID+131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
-  si=(inx+randR)%listSize;
+  randR = Number(BigInt.asUintN(32, BigInt(shuffleID) ^ BigInt(Math.floor(inx/listSize))));  //  have inx overflow effect the mix
+	si = (inx + (randR & 0x7FFFFFFF)) % listSize;   // cut the deck
 
   r1=randR%p1+42;	// randomizing factors crafted empirically (by automated trial and error)
-  r2=((randR*0x89)^r1)%p2;
+  r2=((randR/0x89)^r1)%p2;
   r3=(r1+r2+p3)%listSize;
   r4=r1^r2^r3;
   rx = Math.floor(randR/listSize) % listSize + 1;
@@ -67,17 +66,18 @@ function MillerShuffle(inx, shuffleID, listSize) {
 // --------------------------------------------------------------
 // Miller Shuffle Algorithm E variant
 // Produces nearly the same randomness within the shuffles as MSA-d,
-// with changes and added code to increase the potential number of shuffle permutations generated. 
-// 
-function MillerShuffleAlgo_e(inx, shuffleID, listSize) {
+// with changes and added code to increase the potential number of shuffle permutations generated.
+//
+//    aka:   MillerShuffleAlgo_e
+function MillerShuffle(inx, shuffleID, listSize) {
   var si, r1, r2, r3, r4;
   const p1=24317;
   const p2=32141;
   const p3=63629;  // for shuffling 60,000+ indexes (only needs 32bit unsigned math)
   var halfN, randR;  //local randomizer copy
 
-  randR=shuffleID+131*Math.floor(inx/listSize);  //  have inx overflow effect the mix
-  si=(inx+randR)%listSize;    // cut the deck
+  randR = Number(BigInt.asUintN(32, BigInt(shuffleID) ^ BigInt(Math.floor(inx/listSize))));  //  have inx overflow effect the mix
+  si = (randR % listSize + inx) % listSize;    // cut the deck
 
   r1 = randR % p3;
   r2 = randR % p1; // Now, per Chinese remainder theorem, (r1,r2,r3) will be a unique set
@@ -147,8 +147,8 @@ function MillerShuffle_lite(inx, mixID, nlim) {
   var p2=9949, p3=9973;  // listSize must be smaller than these primes
   var randR;
 
-  randR=mixID+131*Math.floor(inx/nlim);  // have inx overflow effect the mix
-  si=(inx+randR)%nlim;   // cut the deck
+  randR = Number(BigInt.asUintN(32, BigInt(mixID) ^ BigInt(Math.floor(inx/nlim))));  //  have inx overflow effect the mix
+	si = (inx + (randR & 0x7FFFFFFF)) % nlim;   // cut the deck
 
   r1 = randR % p3;	// set of fixed randomizing values
   r2 = randR % p1;
@@ -185,14 +185,12 @@ function DDeck_Shuffle(inx, listSize) {
 
 
 // ------------------------------------
-function algoChkSum(algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
+function algoChkSum(algo, randCut) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
   var nlimit=256;
-  var randCut;
   var i, item, csum, lim;
   var sh;
   
   //srand(314159); // set for repeatabilty on use of rand()
-  randCut = 314159;   //
   csum=sh=0;
   for (lim=nlimit; lim<(nlimit+3); lim++) {
 	  for (i=0; i<(2*lim); i++)  // '2*' in order to exercise input inx overflow feature
@@ -200,8 +198,8 @@ function algoChkSum(algo) {  // does a Simple Shifting Check Sum (both value and
 		//if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
 		if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
 		//else if (algo==3) item = MillerShuffleAlgo_c(i, randCut, lim); 
-		else if (algo==4) item = MillerShuffle(i, randCut, lim);		// currently = MSA_d
-		else if (algo==5) item = MillerShuffleAlgo_e(i, randCut, lim);
+		else if (algo==4) item = MillerShuffleAlgo_d(i, randCut, lim);
+		else if (algo==5) item = MillerShuffle(i, randCut, lim);		// currently = MSA_e
 		else if (algo==6) item = MillerShuffle_lite(i, randCut, lim); 
 		csum += (item<<sh);
 		if (++sh==8) sh=0;

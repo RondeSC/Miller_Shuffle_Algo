@@ -1,10 +1,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "MillerShuffle.h"
 
 unsigned int algoChkSum(int); // advance prototype
-float MeanTest(int);
+float MeanTest(int, unsigned int);
 
 /*------------------------------------------------------------------*/
 /*  Generates samples of shuffling 52 letters a-zA-Z (~songs)       */
@@ -20,6 +21,9 @@ int main(int argc, char **argv)
 	int shuffleID;
 	int algo;
 	unsigned int chks;
+	float mean;
+	bool PRIG_err = false;
+	int stdChkSums[] = {6351454, 5980121, 6603945, 6386077};
    
 	printf("\nFirst we'll valid the MillerShuffle algorithms' implementation ensuring that they'll deliver the performance\n"); 
 	printf("seen in their testing results during development. This is done by check-summing their output given specific\n"); 
@@ -27,18 +31,25 @@ int main(int argc, char **argv)
 	printf("Note that any changes in an algorithm can result in undesirable patterns in the shuffles produced.\n");
 
 	// verify algorithms
-	printf("\nChecksums for     MS_d,   MS_e,   MS_lite,   MS_xlite: \n");
+	printf("\nChecksums for     MS_d,   MS_e,   MS_lite,   MS_xlite:   (with Jan2025 update)\n");
 	printf(  "               ");
 	for (algo=4; algo<=7; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
+		if (chks != stdChkSums[algo-4]) PRIG_err = true;
 	}
-	printf("\n should be:      6323985, 6142675, 6447339, 6174976.\n");
+	printf("\n should be:      6351454  5980121  6603945  6386077.\n");
 
-	printf("\nMean must=255.5: ");
+	printf("\nMean must=256.0:");
 	for (algo=4; algo<=7; algo++) {
-		printf("  %.2f ",MeanTest(algo));  // show algo chksum
+		mean = MeanTest(algo, 314159);
+		printf("  %.2f ",mean);  // show algo chksum
+		if (mean != 256.0) PRIG_err = true;
+		// test corner case for errors
+		mean = MeanTest(algo, 0xFFFFFFFF);
+		if (mean != 256.0) PRIG_err = true;
 	}
+	if (PRIG_err) printf("\n*** Error: computed results were wrong or inconsistant with PRIG funtionality.");
 	printf("\n");
 
 	reps[52]=0;
@@ -119,14 +130,12 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 }
 
 // ------------------------------------
-float MeanTest(int algo) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
-      // for nlimit=512 the mean Must be = 255.5 else there is a problem with the shuffle
-  unsigned int genMax, nlimit=512;
-  unsigned int randCut;
+float MeanTest(int algo, unsigned int randCut) {  // does a Simple Shifting Check Sum (both value and sequence dependant)
+      // for nlimit=513 the mean Must be = 256.0 else there is a problem with the shuffle
+  unsigned int genMax, nlimit=513; // use nlimit != 2^n for full range error detection
   unsigned int i, item, sum;
   
   srand(314159); // set for repeatabilty on use of rand()
-  randCut = 314159;   //
   sum=0;
   genMax=2*nlimit; // genMax must be a multiple of nlimit
 
