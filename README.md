@@ -92,3 +92,4 @@ Where you do need billions of unique shuffles use MSA_e. In cases, shuffling gam
 
 Further: Demoted MSA_b to simply  ShuffleAlgo_b as it does NOT adhere to the features supported in all the other MSAs (MillerShuffleAlgos). Specifically:  1) at any time obtain the n'th item of a "shuffle" without "shuffling" all the other items.  2) Deterministic: Get the same results for a given shuffle regardless of when or where, the hardware, the operating system, or state of the resident PRNG. and 3) Its output's checksum can be used to guarantee the algorithm's implementation and thus behavior.
 
+Added MillerShuffle_Demo.html an interactive web page which I think is fun and hopefully illustrative of the randomness nature of the Miller Shuffle Algo and others. Within the JavaScript code three use cases are presented.
