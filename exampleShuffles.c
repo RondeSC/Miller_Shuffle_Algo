@@ -63,9 +63,8 @@ int main(int argc, char **argv)
 	    // output generated instances of shuffles
 		// ---------------------------------------
 		for (i = 0; i < 52; i++) {
-			item = rand()%52;                               // used to see rand() vs MSA_a
+			item = rand()%52;                 // used to see rand() vs MSA_a
 			//     ---------
-			//item = MillerShuffleAlgo_b(i, shuffleID, 52); // used to see MSA_b vs MSA_a
 			if (item<26) c=item+'a';
 			else         c=item-26+'A';
 			printf("%c",c);
@@ -114,7 +113,7 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 	  for (i=0; i<(2*lim); i++) // '2*' in order to exercise input inx overflow feature
 	  {
 	//    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
-	//    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
+	//    else if (algo==2) item = ShuffleAlgo_b(i, randCut, lim); 
 	//	if (algo==3)      item = MillerShuffleAlgo_c(i, randCut, lim); 
 		if (algo==4)      item = MillerShuffleAlgo_d(i, randCut, lim);
 		else if (algo==5) item = MillerShuffleAlgo_e(i, randCut, lim);
@@ -141,7 +140,7 @@ float MeanTest(int algo, unsigned int randCut) {  // does a Simple Shifting Chec
   for (i=0; i<genMax; i++) 
   {
 //    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
-//    else if (algo==2) item = MillerShuffleAlgo_b(i, randCut, nlimit); 
+//    else if (algo==2) item = ShuffleAlgo_b(i, randCut, nlimit); 
 //    if (algo==3) item = MillerShuffleAlgo_c(i, randCut, nlimit); 
     if (algo==4)      item = MillerShuffleAlgo_d (i, randCut, nlimit); 
     else if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
