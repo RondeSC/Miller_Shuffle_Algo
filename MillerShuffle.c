@@ -110,17 +110,17 @@ unsigned int MillerShuffleAlgo_e(unsigned int inx, unsigned int shuffleID, unsig
 
 
 // --------------------------------------------------------
-// Algorithm B  (a non standard variation)
+// Shuffle Algorithm B  (a non standard variation)
+// Demoted from "MSA_b" but it remains as an interesting benchmark.
 // With this algo there is not a 1:1 between inx IN and OUT repeatability due to the use of rand().
-// Better at randomixing pattern occurrences, providing very good sequence distribution over time.
-// As coded here -b internally depends on a standard version of an MS Algo.
-// Preferred for Shuffles used for dealing to Serious! competing players.
+// ~Better at randomixing pattern occurrences, providing very good sequence distribution over time.
+// As coded here -b internally depends on a standard version of an MSA Algo.
 // 
-// Use of MSA-b is not generally advised due to:  Besides this algo not being repeatable 1:1 between inx IN & OUT;
+// Use of SA-b is not generally advised due to:  Besides this algo not being repeatable 1:1 between inx IN & OUT;
 // This algo won't work for concurrent or nested shuffles !
-// Further MSA-b shuffles must be started with inx=0 and end with inx=listSize-1.
+// Further SA-b shuffles must be started with inx=0 and end with inx=listSize-1.
 //
-unsigned int MillerShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
+unsigned int ShuffleAlgo_b(unsigned int inx, unsigned int shuffleID, unsigned int listSize) {
   unsigned int xi,si;
   static unsigned int opti=-1; // opt inx for swapping
   int seed=0;
