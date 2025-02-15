@@ -106,17 +106,17 @@ function MillerShuffle(inx, shuffleID, listSize) {
 
 var opti=0; // global, OPTional return Index
 // --------------------------------------------------------
-// Algorithm B  (a non standard variation)
+// Shuffle Algorithm B  (a non standard variation)
+// Demoted from "MSA_b" but it remains as an interesting benchmark.
 // With this algo there is not a 1:1 between inx IN and OUT repeatability due to the use of random().
-// Better at randomixing pattern occurrences, providing very good sequence distribution over time.
-// As coded here -b internally depends on a standard version of an MS Algo.
-// Preferred for Shuffles used for dealing to Serious! competing players.
+// ~Better at randomixing pattern occurrences, providing very good sequence distribution over time.
+// As coded here -b internally depends on a standard version of an MSA Algo.
 // 
-// Use of MSA-b is not generally advised due to:  Besides this algo not being repeatable 1:1 between inx IN & OUT;
+// Use of SA-b is not generally advised due to:  Besides this algo not being repeatable 1:1 between inx IN & OUT;
 // This algo won't work for concurrent or nested shuffles !
-// Further MSA-b shuffles must be started with inx=0 and end with inx=listSize-1.
+// Further SA-b shuffles must be started with inx=0 and end with inx=listSize-1.
 //
-function MillerShuffleAlgo_b(inx, shuffleID, listSize) {
+function ShuffleAlgo_b(inx, shuffleID, listSize) {
   var xi,si;
   if ((inx%listSize)==0) opti=MillerShuffle(inx+listSize-1, shuffleID, listSize);
  
@@ -196,7 +196,7 @@ function algoChkSum(algo, randCut) {  // does a Simple Shifting Check Sum (both 
 	  for (i=0; i<(2*lim); i++)  // '2*' in order to exercise input inx overflow feature
 	  {
 		//if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
-		if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
+		if (algo==2) item = ShuffleAlgo_b(i, randCut, lim); 
 		//else if (algo==3) item = MillerShuffleAlgo_c(i, randCut, lim); 
 		else if (algo==4) item = MillerShuffleAlgo_d(i, randCut, lim);
 		else if (algo==5) item = MillerShuffle(i, randCut, lim);		// currently = MSA_e
