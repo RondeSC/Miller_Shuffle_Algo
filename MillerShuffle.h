@@ -1,6 +1,5 @@
 // Miller Shuffle Algorithm proto types
-//unsigned int MillerShuffleAlgo_a(unsigned int, unsigned int, unsigned int);
-//unsigned int MillerShuffleAlgo_b(unsigned int, unsigned int, unsigned int);
+//unsigned int ShuffleAlgo_b(unsigned int, unsigned int, unsigned int);
 unsigned int MillerShuffleAlgo_d(unsigned int, unsigned int, unsigned int);
 unsigned int MillerShuffleAlgo_e(unsigned int, unsigned int, unsigned int);
 short int MillerShuffle_lite (short, unsigned long, short);
