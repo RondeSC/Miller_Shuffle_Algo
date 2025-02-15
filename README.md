@@ -90,3 +90,5 @@ Where you do need billions of unique shuffles use MSA_e. In cases, shuffling gam
  - - -
 **Jan 2025**, After an edge case error, in the javascript version, which returned a negative number, it was determined there were some range rollover issues in the calculations of some of the Randomizing Constants. These were reworked such that there were not even slightly significant changes in the pseudo randomness statistics of any shuffle algorithm per comprehensive retesting.
 
+Further: Demoted MSA_b to simply  ShuffleAlgo_b as it does NOT adhere to the features supported in all the other MSAs (MillerShuffleAlgos). Specifically:  1) at any time obtain the n'th item of a "shuffle" without "shuffling" all the other items.  2) Deterministic: Get the same results for a given shuffle regardless of when or where, the hardware, the operating system, or state of the resident PRNG. and 3) Its output's checksum can be used to guarantee the algorithm's implementation and thus behavior.
+
