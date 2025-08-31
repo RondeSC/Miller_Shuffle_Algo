@@ -709,13 +709,14 @@
 				// set values used in stat calcs based on desired data aspect being characterized
 				x = array[i];
 				if (dvData) {  // delta v
-					let x2 = array[(i + 1) % range];
-					let dv = x2 - x;
+					//let x2 = array[(i + 1) % range];
+					let x2 = (i > 0) ? array[i - 1] : array[size - 1];  // this appears more reflective
+					let dv = x - x2;
 					if (dv < 0) dv += range;  // rap around difference of (0-255)
 					v[i] = dv;
 					y[i] = dv;
 				} else if (viData) { // delta i
-					let di = i - x;
+					let di = (i%range) - x;
 					if (di < 0) di += range;  // rap around difference of (0-255)
 					v[i] = di;
 					y[i] = i;
@@ -737,7 +738,6 @@
             // ---------- Chi-Squared test, now supports multiple data views
             const values = [];
             for (let i = 0; i < size; i++) {
-                let d;
 				let x = v[i];
 				if (!(dvData || viData)) {	// ------ special Chi2 handling suitable for Shuffled Values vs "random" ones
 					// for Chi2 "Shuffles" can't use just: array[i] as there is always equal count (1) of every value ...
@@ -1283,11 +1283,13 @@
 				// track the wide spread occurances
 				let n = ++pts[currentX][currentY];
 				if (n == 1) {
-					++newPts;
+					++newPts;	// note there are 256 (v0,v1) pts out of 65535 that PRIGs won't hit
                     if (newPts == 32767) console.log("At " + ptCnt + "  1/2 the possible grid points have been generated.\n");
                     if (newPts == 58981) console.log("At " + ptCnt + "  90% of possible grid points have been generated.\n");
+                    if (newPts == 64880) console.log("At " + ptCnt + "  99% of possible grid points have been generated.\n");
                     if (newPts == 32767) diagLog.innerText += "\nAt " + ptCnt + "  1/2 the possible grid points have been generated.\n";
                     if (newPts == 58981) diagLog.innerText += "At " + ptCnt + "  90% of possible grid points have been generated.\n";
+                    if (newPts == 64880) diagLog.innerText += "At " + ptCnt + "  99% of possible grid points have been generated.\n";
 				}
 				if (n < 26) {
                     --nCnt[n-1];  // remove cnt from privious tally
