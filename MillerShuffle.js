@@ -19,11 +19,11 @@
 // Update Aug 2023: updated MillerShuffleAlgo-E to rely on 'Chinese remainder theorem' to ensure unique randomizing factors
 // Update Feb 2024: simplified and improved MS_lite
 // Update Jan 2025: reworked Randomizing Constants, to stop range rollovers and javascript miss-handlings.
-
+// Update Aug 2025: Improved MS-lite, removed MSA_d in favor of MAS_e and MS_lite, remove MS_b as not recomended albeit interesting
 
 // --------------------------------------------------------
 // Miller Shuffle, produces a shuffled Index given a base Index, a shuffle ID value and the length of the list being indexed.
-// For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order, utilizing minimum resources.
+// For each inx: 0 to listSize-1, unique indexes are returned in a pseudo "random" order.
 // As such this Miller Shuffle algorithm is the better choice for a playlist shuffle.
 //
 // The 'shuffleID' is a 32bit value and be set by utilizing a PRNG. These bit determin the "random" shuffle.
@@ -32,41 +32,11 @@
 // Note that you can exceed the listSize with the input 'inx' value and get very good results,
 // as the code effectively uses a secondary shuffle by way of using a 'working' modified value of the input shuffle ID.
 
-// --------------------------------------------------------------
-// Miller Shuffle Algorithm D variant
-function MillerShuffleAlgo_d(inx, shuffleID, listSize) {
-  var si, r1, r2, r3, r4, rx, rx2;
-  const p1=24317;
-  const p2=32141;
-  const p3=63629;  // for shuffling 60,000+ indexes (only needs 32bit unsigned math)
-  var randR;     //local randomizer copy
-
-  randR = Number(BigInt.asUintN(32, BigInt(shuffleID) ^ BigInt(Math.floor(inx/listSize))));  //  have inx overflow effect the mix
-	si = (inx + (randR & 0x7FFFFFFF)) % listSize;   // cut the deck
-
-  r1=randR%p1+42;	// randomizing factors crafted empirically (by automated trial and error)
-  r2=((randR/0x89)^r1)%p2;
-  r3=(r1+r2+p3)%listSize;
-  r4=r1^r2^r3;
-  rx = Math.floor(randR/listSize) % listSize + 1;
-  rx2 = Math.floor(randR/listSize/listSize) % listSize + 1;
-
-  // perform conditional multi-faceted mathematical spin-mixing (on avg 2 1/3 shuffle ops done + 2 simple Xors)
-  if (si%3==0) si=(((si/3)*p1+r1) % Math.floor((listSize+2)/3)) *3; // spin multiples of 3 
-  if (si%2==0) si=(((si/2)*p2+r2) % Math.floor((listSize+1)/2)) *2; // spin multiples of 2 
-  if (si<Math.floor(listSize/2)) si=(si*p3+r4) % Math.floor(listSize/2);
-
-  if ((si^rx) < listSize)   si=si^rx;			// flip some bits with Xor
-  si = (si*p3 + r3) % listSize;  // relatively prime gears turning operation
-  if ((si^rx2) < listSize)  si=si^rx2;
-  
-  return(si);  // return 'Shuffled' index
-}
 
 // --------------------------------------------------------------
 // Miller Shuffle Algorithm E variant
-// Produces nearly the same randomness within the shuffles as MSA-d,
-// with changes and added code to increase the potential number of shuffle permutations generated.
+// Produces nearly the same randomness within the shuffles as did MSA-d,
+// with changes and added code to significantly increase the potential number of shuffle permutations generated.
 //
 //    aka:   MillerShuffleAlgo_e
 function MillerShuffle(inx, shuffleID, listSize) {
@@ -101,69 +71,48 @@ function MillerShuffle(inx, shuffleID, listSize) {
 }
 
 
-//===========================================================================================================
-// Other Algorithms of possible interest
-
-var opti=0; // global, OPTional return Index
-// --------------------------------------------------------
-// Shuffle Algorithm B  (a non standard variation)
-// Demoted from "MSA_b" but it remains as an interesting benchmark.
-// With this algo there is not a 1:1 between inx IN and OUT repeatability due to the use of random().
-// ~Better at randomixing pattern occurrences, providing very good sequence distribution over time.
-// As coded here -b internally depends on a standard version of an MSA Algo.
-// 
-// Use of SA-b is not generally advised due to:  Besides this algo not being repeatable 1:1 between inx IN & OUT;
-// This algo won't work for concurrent or nested shuffles !
-// Further SA-b shuffles must be started with inx=0 and end with inx=listSize-1.
-//
-function ShuffleAlgo_b(inx, shuffleID, listSize) {
-  var xi,si;
-  if ((inx%listSize)==0) opti=MillerShuffle(inx+listSize-1, shuffleID, listSize);
- 
-  si=MillerShuffle(inx, shuffleID, listSize);
-
-  if ((inx%listSize)==(listSize-1)) {
-    si=opti;
-  } else if (Math.floor(Math.random() * 3)==1) {
-    xi=si;
-    si=opti % listSize;  // swap it & be sure # is in current range
-    opti=xi;
-  }
-  return(si);
-}
-
-
-// ---------------------- MS Lite 2024 Improved update,   [Now default PRIG() function in my game software]
+// ---------------------- MS Lite Aug 2025 lastest & best yet,   [Now default PRIG() function in my game software]
 // Miller Shuffle lite, 
 // produces a shuffled Index given a base Index, a random seed and the length of the list being indexed
 // for each inx: 0 to nlim-1, unique indexes are returned in a pseudo "random" order.
 // 
-// This variation of the Miller Shuffle algorithm is for when you need/want minimal coding and processing, 
-// to acheive good randomness along with desirable shuffle characteristics & many millions of permutations.
+// This variation of the Miller Shuffle algorithm is for when you need/want to use minimal resources, 
+// to acheive very good randomness along with desirable shuffle characteristics & many millions of permutations.
 // For a any shuffle this works really well; unlike using rand() which does not.  (used by DDesk_Shuffle)
 function MillerShuffle_lite(inx, mixID, nlim) {
-  var si, r1, r2, r3, rx;
-  var p1=3343;
-  var p2=9949, p3=9973;  // listSize must be smaller than these primes
+  var si, r1, r2, rx, rx2;
+  const p1 = 9949, p2 = 9973;  // nlim must be smaller than these primes
   var randR;
 
-  randR = Number(BigInt.asUintN(32, BigInt(mixID) ^ BigInt(Math.floor(inx/nlim))));  //  have inx overflow effect the mix
-	si = (inx + (randR & 0x7FFFFFFF)) % nlim;   // cut the deck
+  randR = Number(BigInt.asUintN(32, BigInt(mixID) ^ (BigInt(13 * Math.floor(inx / nlim)))));   //  have inx overflow effect the mix
+  si = (Math.floor(randR / 11) + inx) % nlim;   // cut the deck
 
-  r1 = randR % p3;	// set of fixed randomizing values
+  r1 = randR % p2;	// set of fixed randomizing values
   r2 = randR % p1;
-  r3 = randR % p2;
-  rx = Math.floor(randR/nlim) % nlim + 1;
+  rx = Math.floor(randR / nlim) % nlim + 1;
+  rx2 = Math.floor(randR / 131) % nlim + 1;
 
-  // perform conditional multi-faceted mathematical spin-mixing 
-  if (si % 3 == 0) si = (((si / 3) * p1 + r1) % Math.floor((nlim + 2) / 3)) * 3; // spin-mix multiples of 3 
-  if (si % 2 == 0) si = (((si / 2) * p2 + r2) % Math.floor((nlim + 1) / 2)) * 2; // spin-mix multiples of 2 
-  if (si < rx) si = (si * p3 + r2) % rx;                       // mix random half one way
-  else         si = ((si - rx) * p2 + r1) % (nlim - rx) + rx;  // and the other another
-  si = (si * p3 + r3) % nlim;		// relatively prime gears churning operation
-  
-  return(si);  // return 'Shuffled' index
+  // perform conditional multi-faceted mathematical spin-mixing  (average # of si recalcs performed is ~1.5)
+  if (si % 2 == 0) si = (((si / 2) * p2 + r2) % Math.floor((nlim + 1) / 2)) * 2; // spin multiples of 2
+  if ((si ^ rx2) < nlim) si = si ^ rx2;
+  if (si < rx) si = ((rx - si - 1) * p2 + r1 + r2) % rx;       // mix random half one way
+  else si = ((si - rx) * p1 + r2) % (nlim - rx) + rx;          // and the other another
+  if (si % 3 == 0) si = (((si / 3) * p1 + r1) % Math.floor((nlim + 2) / 3)) * 3; // spin multiples of 3 
+
+  return (si);  // return 'Shuffled' index
 }
+
+// _xlite ? notablly above lite algo could be abridged ...
+//                                   ___ Permus ___
+//							Chi2    missed  avg devi  Repeats/1M
+// from the 5 lines above   255		0		  12.0	  62   R/1M  (~= MSA-d)
+// with 4 lines 1,2,3,5     256		36  	  20.0	  1800 R/1M  better than MS_Xlite
+// with 3 lines 1,2,3:      270		477  	  59.0	  21K  R/1M
+// with 2 lines 1,3:        285		3638	  94.4	  269K R/1M  better than MSA-c was
+
+
+//===========================================================================================================
+// Other Algorithms of possible interest
 
 
 // --------------------------------------------------------
@@ -178,7 +127,7 @@ function MillerShuffle_lite(inx, mixID, nlim) {
 var shuffleID = 314159; // global
 
 function DDeck_Shuffle(inx, listSize) {
-  if (inx==0) shuffleID=Math.floor(Math.random() * 1000000); // reshuffle  
+  if (inx==0) shuffleID=Math.floor(Math.random() * 1000000000); // reshuffle  
   var si=MillerShuffle_lite(inx, shuffleID, 2*listSize);
   return (Math.floor(si/2));  // return a single desk 'Shuffled' index
 }
@@ -196,10 +145,10 @@ function algoChkSum(algo, randCut) {  // does a Simple Shifting Check Sum (both 
 	  for (i=0; i<(2*lim); i++)  // '2*' in order to exercise input inx overflow feature
 	  {
 		//if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
-		if (algo==2) item = ShuffleAlgo_b(i, randCut, lim); 
+		//if (algo==2) item = MillerShuffleAlgo_b(i, randCut, lim); 
 		//else if (algo==3) item = MillerShuffleAlgo_c(i, randCut, lim); 
-		else if (algo==4) item = MillerShuffleAlgo_d(i, randCut, lim);
-		else if (algo==5) item = MillerShuffle(i, randCut, lim);		// currently = MSA_e
+		//else if (algo==4) item = MillerShuffleAlgo_d(i, randCut, lim);
+		if (algo==5) item = MillerShuffle(i, randCut, lim);		// currently = MSA_e
 		else if (algo==6) item = MillerShuffle_lite(i, randCut, lim); 
 		csum += (item<<sh);
 		if (++sh==8) sh=0;
