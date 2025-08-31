@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -22,7 +23,7 @@ int main(int argc, char **argv)
 	unsigned int chks;
 	float mean;
 	bool PRIG_err = false;
-	int stdChkSums[] = {6351454, 5980121, 6603945, 6386077};
+	int stdChkSums[] = {6351454, 5980121, 6115927, 6386077};
    
 	printf("\nFirst we'll valid the MillerShuffle algorithms' implementation ensuring that they'll deliver the performance\n"); 
 	printf("seen in their testing results during development. This is done by check-summing their output given specific\n"); 
@@ -30,17 +31,17 @@ int main(int argc, char **argv)
 	printf("Note that any changes in an algorithm can result in undesirable patterns in the shuffles produced.\n");
 
 	// verify algorithms
-	printf("\nChecksums for     MS_d,   MS_e,   MS_lite,   MS_xlite:   (with Jan2025 update)\n");
+	printf("\nChecksums for     MS_e,   MS_lite:   (with Aug2025 update)\n");
 	printf(  "               ");
-	for (algo=4; algo<=7; algo++) {
+	for (algo=5; algo<=6; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 		if (chks != stdChkSums[algo-4]) PRIG_err = true;
 	}
-	printf("\n should be:      6351454  5980121  6603945  6386077.\n");
+	printf("\n should be:      5980121  6115927.\n");
 
 	printf("\nMean must=256.0:");
-	for (algo=4; algo<=7; algo++) {
+	for (algo=5; algo<=6; algo++) {
 		mean = MeanTest(algo, 314159);
 		printf("  %.2f ",mean);  // show algo chksum
 		if (mean != 256.0) PRIG_err = true;
@@ -63,7 +64,7 @@ int main(int argc, char **argv)
 	    // output generated instances of shuffles
 		// ---------------------------------------
 		for (i = 0; i < 52; i++) {
-			item = rand()%52;                 // used to see rand() vs MSA_a
+			item = rand()%52;                      // used to see rand() vs MSA
 			//     ---------
 			if (item<26) c=item+'a';
 			else         c=item-26+'A';
@@ -115,10 +116,10 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 	//    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, lim); 
 	//    else if (algo==2) item = ShuffleAlgo_b(i, randCut, lim); 
 	//	if (algo==3)      item = MillerShuffleAlgo_c(i, randCut, lim); 
-		if (algo==4)      item = MillerShuffleAlgo_d(i, randCut, lim);
-		else if (algo==5) item = MillerShuffleAlgo_e(i, randCut, lim);
+		//if (algo==4)      item = MillerShuffleAlgo_d(i, randCut, lim);
+		if (algo==5) item = MillerShuffleAlgo_e(i, randCut, lim);
 		else if (algo==6) item = MillerShuffle_lite (i, randCut, lim); 
-		else if (algo==7) item = MillerShuffle_xlite(i, randCut, lim);  
+		//else if (algo==7) item = MillerShuffle_xlite(i, randCut, lim);  
 		csum += (item<<sh);
 		if (++sh==8) sh=0;
 	  }
@@ -142,10 +143,10 @@ float MeanTest(int algo, unsigned int randCut) {  // does a Simple Shifting Chec
 //    if (algo==1)      item = MillerShuffleAlgo_a(i, randCut, nlimit); 
 //    else if (algo==2) item = ShuffleAlgo_b(i, randCut, nlimit); 
 //    if (algo==3) item = MillerShuffleAlgo_c(i, randCut, nlimit); 
-    if (algo==4)      item = MillerShuffleAlgo_d (i, randCut, nlimit); 
-    else if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
+    //if (algo==4)      item = MillerShuffleAlgo_d (i, randCut, nlimit); 
+    if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
     else if (algo==6) item = MillerShuffle_lite (i, randCut, nlimit); 
-    else if (algo==7) item = MillerShuffle_xlite(i, randCut, nlimit); 
+    //else if (algo==7) item = MillerShuffle_xlite(i, randCut, nlimit); 
     sum += item;
   }
 
