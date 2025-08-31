@@ -444,6 +444,7 @@
 		const randomScaledStats = calculateStats(randomScaled(size));
 		const expectedStats = calculateExpectedStats(size);
 
+		identityStats.ChiSquared = 0; // correctly init it
         expectedStats.stdDev += " !";   // Expected exact! stats for values returned by a PRIG algo
         expectedStats.mean += " !";
 		let algoNames = ["Identity", "Human Shuffle", "Fisher-Yates", "MSA PRIG", "Random PRNG"];
@@ -741,8 +742,10 @@
 				let x = v[i];
 				if (!(dvData || viData)) {	// ------ special Chi2 handling suitable for Shuffled Values vs "random" ones
 					// for Chi2 "Shuffles" can't use just: array[i] as there is always equal count (1) of every value ...
-					// therefore using ajuacent values XORed, as this proves to gives excelent comparable Chi2 results
+					// therefore using adjacent values XORed, as this proves to gives excelent comparable Chi2 results
 					x = (array[i] ^ array[(i + 1) % range]) % range;  // 'range' need be 2**n for this to be truely valid
+					//x = array[i] ^ (i % range);  // surprisingly, not as representitive
+                    if (algo == 1 && algoOpt == "opt1") x = array[i];  //  normalize for identity set 
 				}
                 values.push(x);
             }
@@ -1644,3 +1647,4 @@
 
 </body>
 </html>
+
