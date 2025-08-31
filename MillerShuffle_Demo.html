@@ -432,7 +432,7 @@
 		// ------------ initially: exersize all the shuffle algos, collect and display their statistics
 		let range = 256;
 		const size = 256;
-		let deltaCounts = [];
+		let valCounts = [];
 		let lastIStack = [];
 
 		// Creating "shuffled" arrays for each algo to then calculate randomness statistics from.
@@ -880,14 +880,14 @@
                     //ctx.fillStyle = `rgba(17, 34, 68, 1.0)`;
                     ctx.fillRect(i * 2, 514 - 2 * h, 4, 2 * h); // extra errase patch
                 }
-                h = deltaCounts[i];
+                h = valCounts[i];
                 if (h != 0) {
                     if (i & 1) ctx.fillStyle = `rgba(255, 255, 0, 0.9)`;  // stagger the coloring
                     else ctx.fillStyle = `rgba(255, 180, 0, 1)`;
                     ctx.fillRect(i * 2, 514 - 2 * h, 2, 2 * h);
                 }
             }
-            lastIStack = deltaCounts;
+            lastIStack = valCounts;
 		}
 
 
@@ -1127,7 +1127,7 @@
 		}//);
 
 
-        /***/
+        /***
 		//----------------------------------------------------------------------------
 		//  show MSA algo chksums
 		let randCut = 314159;
