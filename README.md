@@ -93,4 +93,11 @@ Where you do need billions of unique shuffles use MSA_e. In cases, shuffling gam
 Further: Demoted MSA_b to simply  ShuffleAlgo_b as it does NOT adhere to the features supported in all the other MSAs (MillerShuffleAlgos). Specifically:  1) at any time obtain the n'th item of a "shuffle" without "shuffling" all the other items.  2) Deterministic: Get the same results for a given shuffle regardless of when or where, the hardware, the operating system, or state of the resident PRNG. and 3) Its output's checksum can be used to guarantee the algorithm's implementation and thus behavior.
 
 Added MillerShuffle_Demo.html an interactive web page which I think is fun and hopefully illustrative of the randomness nature of the Miller Shuffle Algo and others. Within the JavaScript code three use cases are presented.
-![MSA_Demo_image](https://github.com/user-attachments/assets/07eb614b-441a-4adc-ab21-5cea4f46b91d)
+ - - -
+<img width="1530" height="866" alt="ShuffleDemo_screen" src="https://github.com/user-attachments/assets/97a13511-6e82-43e1-8f49-44b40209e23f" />
+
+ **Aug 2025**, MSA-d and MS_xlite have been removed, in favor of an updated MS_lite. The updated MS_lite performs statistically on par with the MSA-d, and recommended in any application not requiring the extreme item count (>10,000) or the billions of consecutive unique shuffles of MSA-e.
+ The  interactive web page "MillerShuffle_Demo.html" has been significantly expanded. Data sets of shuffles are now characterized in three ways (as originally done, delta values and raw values), which are measured statically and drive plots. Additional types of statistics are outputted, and there are two new plots: a histogram of values and of colorized accumulative grid point (x,y) occurrences.
+ Here is a sample of interesting plots (better shuffles tend to give boring plots).
+![Shuffle_plots](https://github.com/user-attachments/assets/73fadddc-3a74-4244-8447-fb85cde185b9)
+
