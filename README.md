@@ -94,10 +94,15 @@ Further: Demoted MSA_b to simply  ShuffleAlgo_b as it does NOT adhere to the fea
 
 Added MillerShuffle_Demo.html an interactive web page which I think is fun and hopefully illustrative of the randomness nature of the Miller Shuffle Algo and others. Within the JavaScript code three use cases are presented.
  - - -
-<img width="1530" height="866" alt="ShuffleDemo_screen" src="https://github.com/user-attachments/assets/97a13511-6e82-43e1-8f49-44b40209e23f" />
+Aug 2025 Update:
+-----------------
+The  interactive web page "MillerShuffle_Demo.html" has been significantly expanded. Data sets of shuffles are now characterized in three ways (with values as originally done, delta values and delta index offsets), which are measured statically and drive plots. Additional types of statistical analysis are printed out, and there are two new plots: a histogram of values and that of colorized accumulative grid point (x,y) occurrences.
 
- **Aug 2025**, MSA-d and MS_xlite have been removed, in favor of an updated MS_lite. The updated MS_lite performs statistically on par with the MSA-d, and recommended in any application not requiring the extreme item count (>10,000) or the billions of consecutive unique shuffles of MSA-e.
- The  interactive web page "MillerShuffle_Demo.html" has been significantly expanded. Data sets of shuffles are now characterized in three ways (as originally done, delta values and raw values), which are measured statically and drive plots. Additional types of statistics are outputted, and there are two new plots: a histogram of values and of colorized accumulative grid point (x,y) occurrences.
- Here is a sample of interesting plots (better shuffles tend to give boring plots).
+<img width="1530" height="868" alt="MSA_Demo_image" src="https://github.com/user-attachments/assets/25b83b9a-ec6d-47a7-93e4-9e4c5bd09202" />
+ 
+There is an **updated MS_lite algorithm** (both in .c and .js) which performs statistically on par with the MSA-d, and is recommended in any application not requiring the extreme item count (>10,000) or the billions of consecutive unique shuffles of the MSA-e algorithm.
+MSA-d and MS_xlite have been removed, in favor of the updated MS_lite.
+
+ Here are some samples of interesting plots (BTW: better shuffles tend to give boring plots).
 ![Shuffle_plots](https://github.com/user-attachments/assets/73fadddc-3a74-4244-8447-fb85cde185b9)
 
