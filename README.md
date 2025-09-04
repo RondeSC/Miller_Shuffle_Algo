@@ -101,6 +101,7 @@ The  interactive web page "MillerShuffle_Demo.html" has been significantly expan
 <img width="1530" height="868" alt="MSA_Demo_image" src="https://github.com/user-attachments/assets/25b83b9a-ec6d-47a7-93e4-9e4c5bd09202" />
  
 There is an **updated MS_lite algorithm** (both in .c and .js) which performs statistically on par with the MSA-d, and is recommended in any application not requiring the extreme item count (>10,000) or the billions of consecutive unique shuffles of the MSA-e algorithm.
+
 MSA-d and MS_xlite have been removed, in favor of the updated MS_lite.
 
  Here are some samples of interesting plots (BTW: better shuffles tend to give boring plots).
