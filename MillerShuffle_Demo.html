@@ -1,6 +1,15 @@
 <!DOCTYPE html>
+<!-- Shuffle Algorithm Comparison and demonstrated use of the a Miller Shuffle Algorithm -->
 <!-- source: https://github.com/RondeSC/Miller_Shuffle_Algo -->
-<!-- Ron Miller Aug 2025, Cobbled together from multiple development efforts -->
+<!-- Ron Miller Jan 2025, Cobbled together from multiple development efforts -->
+<!-- Ron Miller Aug-Sep 2025, Expanded and Improved statistics and Graphing & Plotting -->
+
+<!-- Note that some statistic calculations may have inaccuracies of ~0.5% (or 1/256) due to straight forward implementations -->
+<!-- That is tolerated, as statistics from a random datasets may vary +/-10% and the code to handle the odd case may add 20% complexity  -->
+
+<!-- Note that statistics in the table are the average of the stats of many individual shuffles -->
+<!-- while the ones printed at the bottom, are statistics for a dataset made up from the collection of many shuffles  -->
+
 <html>
 <head>
 	<title>View Shuffles</title>
@@ -128,7 +137,7 @@
 					<th>Relative<br />Displacement</th>
 					<th>Mean &nbsp; &nbsp; &nbsp; </th>
 					<th>Standard<br />Deviation</th>
-					<th>Calculated<br />Pi error%</th>
+					<th>Calculated<br />Avg Error%</th>
 				</tr>
 			</table>
 
@@ -184,7 +193,6 @@
 				</div>-->
 
 			</div>
-
 		</div>
 
 		<div class="solid-border" style="display: flow-root; width: 515px; padding-bottom: 2px;">
@@ -196,7 +204,7 @@
 					<span style="color: gray;">
 						<span class="checkbox-container"><label><input type="checkbox" id="aging" checked="checked">Aging</label></span>
 						<label><input type="checkbox" id="dvData">dV &nbsp;</label>
-						<label><input type="checkbox" id="viData">Vi</label>
+						<label><input type="checkbox" id="viData">dI</label>
 						<!--<input type="checkbox" id="viData">-->
 					</span>
 				</center>
@@ -216,8 +224,9 @@
 		<button id="pauseButton">Pause Processing</button>
 		<span id="dataType" style="color: gray;">  </span> <br />
 		<span style="color: gray;">
-			<label><input type="checkbox" id="histogram">Histogram of values</label> &nbsp;
-			<label><input type="checkbox" id="scatterPlot">Plot value pair occurrences</label>
+			<label><input type="checkbox" id="histogram">Histogram of </label>
+			<span id="histoType">values</span>&nbsp;
+			<label><input type="checkbox" id="scatterPlot" style="margin-left: 24px;">Plot value pair occurrences</label>
 		</span>
 		<div id="notice" style="text-align: center;"></div>
 	</div>
@@ -226,7 +235,7 @@
 	<div id="results-container" style="xdisplay: inline-flex">
 		<pre id="results-output" style=" margin: 0;"></pre>
 	</div>
-	<div style="color: darkgoldenrod;">------------ area for the reporting of Diganostics ----------------</div>
+	<div style="color: darkgoldenrod;">------------ area for the reporting of Diagnostics ----------------</div>
 	<div id="diagArea" style="color: darkslategray;"> </div>
 
 	<div id="chksumArea"> </div>
@@ -248,13 +257,15 @@
 		let pro = false;
 		let newAlgo = true;
 		let dvData = false;
-		let viData = false
+		let viData = false;
+		let rawX = false;
 		let algoName = "MSA PRIG";
 		let iStack = true;
 		let Hist = false;
 		let scatterPlot = false;
 		let isPaused = false;
 		let randID = 0; // when set it overrides the shuffleID
+		shuffleID = 31416;	// global var in MillerShuffle.js
 
 		const canvas = document.getElementById('myCanvas');
 		const ctx = canvas.getContext('2d');
@@ -304,15 +315,6 @@
 
 			algoName = event.target.nextElementSibling.textContent;
 			setMethodName();
-
-			//rows[algo-1].classList.add('active');
-			//	document.getElementById('ballShuffleStats').innerHTML = "";
-			//	stats = [];
-			//	updateStats(algo);
-			//	clearInterval(statIntvId); // Stop the update interval
-			//	statIntvId = setInterval(periodicStats, 1000);   // update every 1.0 secs
-			//	clearCanvas();
-			//	createBalls();
 		}
 
 		function restartStats() {
@@ -342,8 +344,15 @@
 			}
 
 			if ("histogram" == event.target.id) {
+				if (Hist && !(dvData || viData) && !rawX) {
+					rawX = true;
+					event.target.checked = true;
+					//return;
+				} else {
+					rawX = false;
 				Hist = event.target.checked;
 				if (Hist) { scatterPlot = false; document.getElementById('scatterPlot').checked = false; }
+				}
 			} else if ("scatterPlot" == event.target.id) {
 				scatterPlot = event.target.checked;
 				if (scatterPlot) {
@@ -367,6 +376,16 @@
                 document.querySelector('.checkbox-container').classList.remove('disabled');
 			}
 
+			let el = document.getElementById('histoType');
+			if (Hist) {
+				if (dvData) el.innerHTML = "<b>deltaV </b>";
+				else if (viData) el.innerHTML = "<b>delta I </b>";
+				else {
+					if (rawX) el.innerHTML = "<b>rawVal </b>";
+					else el.innerHTML = "<b>Values </b>";
+				}
+			} else el.innerHTML = "values ";
+
             if ("aging" != event.target.id) clearCanvas();
 		}
 
@@ -376,7 +395,7 @@
 			if (dvData) name += " - dV";
 			if (viData) name += " - dI";
 			rows[algo - 1].cells[0].innerHTML = name;
-			// tell viewer what type data id being processed
+			// tell viewer what type data is being processed
 			dType = "(v)"
 			if (dvData) dType = "(dv)";
 			if (viData) dType = "(di)";
@@ -386,7 +405,7 @@
             document.getElementById('diagArea').innerText += " algo:" + algo + "-" + opt;
             pType = "v0,v1"  // coordinate Point type
             if (dvData) pType = "v,dv";
-            if (viData) pType = "v,i";
+			if (viData) pType = "di,i";
 			document.getElementById('dataType').innerHTML = " &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Data being Tested & Plotted: <b>" + pType + "</b>";
 			rows[algo - 1].classList.add('active');
             Unique_Temporal_Stats();
@@ -426,14 +445,15 @@
 			meanCell.textContent = results.mean;
 			//deltaMeanCell.textContent = results.deltaMean;
 			stdDevCell.textContent = results.stdDev;
-			piErrorCell.textContent = results.piError;
+			//piErrorCell.textContent = results.piError;
+			piErrorCell.textContent = results.avgError;
 		}
 
-		// ------------ initially: exersize all the shuffle algos, collect and display their statistics
+		// ------------ initially: exercize all the shuffle algos, collect and display their statistics
 		let range = 256;
 		const size = 256;
-		let valCounts = [];
-		let lastIStack = [];
+		let histoCnts = [];
+		let lastStack = [];
 
 		// Creating "shuffled" arrays for each algo to then calculate randomness statistics from.
 		let identityArray = identity(size); 
@@ -455,7 +475,7 @@
 		displayResults("Random PRNG", randomScaledStats);
 		displayResults("Expected/Ideal", expectedStats);
 
-		// Hightlight some cells that are known to be telling
+		// Highlight some cells that are known to be telling
 		document.querySelector("#results > tbody > tr:nth-child(2) > td:nth-child(2)").style.backgroundColor = 'lightpink';
 		document.querySelector("#results > tbody > tr:nth-child(2) > td:nth-child(3)").style.backgroundColor = 'lightpink';
 		document.querySelector("#results > tbody > tr:nth-child(2) > td:nth-child(6)").style.backgroundColor = 'lightpink';
@@ -464,6 +484,7 @@
 		document.querySelector("#results > tbody > tr:nth-child(3) > td:nth-child(6)").style.backgroundColor = '#FFD0D1';
 		document.querySelector("#results > tbody > tr:nth-child(6) > td:nth-child(4)").style.backgroundColor = '#FFD0D1';
 		document.querySelector("#results > tbody > tr:nth-child(6) > td:nth-child(5)").style.backgroundColor = '#FFD0D1';
+
 
 		// ==============================================================  Shuffle Algos ...
 		// have standardized all Algos to generate an array of (size)
@@ -475,8 +496,6 @@
 
 		function MSA_PRIG_Array(size) {  // uses the Miller Shuffle Algo (MSA_e)
 			let array = [];
-			if (randID) shuffleID = randID;
-			else shuffleID = Math.floor(Math.random() * 4294000000);
 			for (let i = 0; i < size; i++) {
 				array.push(MillerShuffle(i, shuffleID, size));
 			}
@@ -513,15 +532,12 @@
 			return array;
 		}
 
-		// generate an "identity" shuffle, alternately use other algorithums for testing
+		// generate an "identity" shuffle, alternately use other algorithms for testing
 		function identity(size) {
 			let array = [];
 			let asize = size;
-			if (algoOpt == "opt7") asize = 2 * size;  // to accommidate Dbl Deck Dealing
-			if (randID) shuffleID = randID;
-			else shuffleID = Math.floor(Math.random() * 4294000000);
+			if (algoOpt == "opt7") asize = 2 * size;  // to accommodate Dbl Deck Dealing
 			for (let i = 0; i < asize; i++) {
-				//if (document.getElementById('testShuffle').checked) {
 				if (algoOpt == "opt7") {
                     array.push(DDeck_Shuffle(i, size));
                 } else if (algoOpt == "opt8") {
@@ -549,7 +565,7 @@
 			}
 			const deckSize = items.length;
 
-			// 1. Cut needed to move items off the top & buttom
+			// 1. Cut needed to move items off the top & bottom
 			var cutPoint = Math.floor(Math.random() * (deckSize - 2)) + 1;
 			var topHalf = items.slice(0, cutPoint);
 			var bottomHalf = items.slice(cutPoint);
@@ -582,8 +598,8 @@
 			for (let riffle = 0; riffle < numRiffles; riffle++) {
 				const rifflePoint = Math.floor(deckSize / 2);
 
-				if (pro) // -------- Do an intervining Cut ~1/4 (1/6 - 1/3)	 (made for <5% improvement)
-				{       //   Key to keep deck top & buttom items from staying near by. (chk ball 1 &15)
+				if (pro) // -------- Do an intervening Cut ~1/4 (1/6 - 1/3)	 (made for <5% improvement)
+				{       //   Key to keep deck top & bottom items from staying nearby. (chk ball 1 &15)
 					var cutPoint = Math.floor(Math.random() * (deckSize / 6)) + (deckSize / 6);
 					var topHalf = items.slice(0, cutPoint);
 					var bottomHalf = items.slice(cutPoint);
@@ -619,10 +635,8 @@
 
         // ----------------------------------------------- highlighted would-be shuffling Algorithms
 
-        function weak_PRIG(inx, shuffleID, listSize) {  // -------  old weak PRIG
-
+		function weak_PRIG(inx, mixID, listSize) {  // -------  old weak PRIG
             let si, r1, r2;
-            // try bigger primes
             const p1 = 50021, p2 = 63629;
             let maxBin;
             let sh;
@@ -630,16 +644,14 @@
             // compute reference values for later
             maxBin = 1;
             while ((2 * maxBin + 1) < listSize) maxBin = 2 * maxBin + 1;
-            // allow an over zealous inx
-            shuffleID += 131 * Math.floor(inx / listSize);  // & have it effect the mix
-            r1 = shuffleID % 1009;   // constant values are not super important
-            r2 = shuffleID % 1019;
-            si = (inx + shuffleID) % listSize;
+			r1 = mixID % 1009;   // constant values are not super important
+			r2 = mixID % 1019;
+			si = (inx + mixID) % listSize;  // an initial cut
 
-            // plenty of effort, but not the best results //
+			// ------ plenty of effort, but not the best results ------ //
             si = (si * p1 + r1) % listSize;  // relatively prime gears turning operation
             if (si <= maxBin && si != 0) {  // This one middle action does the added mix up.
-                // --- now for the secret sauce of MSA_c ...
+				// --- now for the would-be secret sauce of MSA_c ...
                 for (sh = 0; (maxBin >> sh) >= si; sh++);  // set to do smart masked XOR operation
                 si = si ^ ((0x5555 & maxBin) >> sh);      // note: operator order is important
             }
@@ -649,55 +661,59 @@
             return (si);  // return 'Shuffled' index
         }
 
-        function poor_PRIG(inx, RandizeR, listSize) {	// -------  poor with patterns in its output
-            let si;
-            let r1, r2;
-            let rx, rx2;
-            const p1 = 3251, p2 = 5261, p3 = 4493;  // arbitrary prime #s  must be > listSize
-
-            //// Simple Algo 2 ////
-            si = (inx + RandizeR) % listSize;       // allow an over zealous inx
-            RandizeR += Math.floor(inx / listSize);  // & have it effect the mix
-            r1 = RandizeR % listSize;
-            r2 = Math.floor(RandizeR / listSize);
-            rx = Math.floor(RandizeR / listSize) % listSize + 1;
-            rx2 = Math.floor(RandizeR / listSize / listSize) % listSize + 1;
-
-            si = ((si ^ rx) < listSize) ? si ^ rx : si;
-            ///std mod spin-mix:
-            si = (si * p3 + r1) % listSize;
-            si = ((si ^ rx2) < listSize) ? si ^ rx2 : si;
-
-            //si = (si * p2 + r2) % listSize;  // another std mod spin-mix
-
-            return (si);  // return 'Shuffled' index
-        }
-
-
-        function faux_PRIG(inx, RandizeR, listSize) {	// -------  many stats look good, but algo fails PRIG requirements
-            let si;
-            let r1, r2, rx;
+		function poor_PRIG(inx, mixID, listSize) {	// -------  poor with patterns in its output
+            let si, r1, r2, rx, rx2;
             const p1 = 3251, p2 = 5261;
 
-			si = (inx + RandizeR) % listSize;
-            r1 = RandizeR % p1 + 1;
-            r2 = RandizeR % p2 + 1;
-			rx = Math.floor(RandizeR / listSize) % listSize + 1;
+			si = (inx + mixID) % listSize;       // allow an over zealous inx
+			r1 = mixID % listSize;
+			r2 = Math.floor(mixID / listSize);
+			rx = Math.floor(mixID / listSize) % listSize + 1;
+			rx2 = Math.floor(mixID / listSize / listSize) % listSize + 1;
 
-            si = ((((Math.floor(si * p2 / 5) % listSize + 1)) * ((si * p1) % listSize + 1)) + r2 ^ rx ^ r1) % listSize;
+			// three spin-mix, 2 conditional; and an XOR ops
+            if (si < rx) si = ((rx - si - 1) * p2 + r1) % rx;       // mix random half one way
+            si = (si * p1 + r2) % listSize;  						// std mod spin-mix:
+            if (si < rx2) si = ((rx2 - si - 1) * p1 + r2) % rx2;    // mix another ~half
+            si = ((si ^ rx) < listSize) ? si ^ rx : si;
+
             return (si);  // return 'Shuffled' index
         }
 
 
-		function test_Shuffle(inx, RandizeR, listSize) {
-            // TBD  // DEBUGing
+		function faux_PRIG(inx, mixID, listSize) {	// -------  many stats look good, but algo fails PRIG requirements
+            let si, r1, r2;
+            const p1 = 3251, p2 = 5261;
+			si = (inx + mixID) % listSize;
+			r1 = mixID % p1 + 1;
+			r2 = mixID % p2 + 1;
+
+			if (1) {  // faux_PRIG/bad_Algo
+				// three interesting equally interesting variations
+				si = ( ( ((Math.floor(si * p2 / 5) % listSize + 1)) * ((si * p1) % listSize + 1) + r1) ^ r2 ) % listSize;   // orig. faux algo
+				//si = ((((Math.floor(si * p2 / 5) % listSize + 1)) * ((si * p1) % listSize + 1)) ^ r2 + r1) % listSize;      // makes good graphs but stuck chi=258
+				//si = ((((Math.floor(si * p2 / 5) % listSize + 1)) * (((si + (r2 ^ r1)) * p1) % listSize + 1))) % listSize;  // more? faux than 1st two
+
+			} else {   // Alternative, whos raw values form a pyramid distribution Histogram & very interesting plots
+				si = Math.floor((getRandomInt(listSize) + getRandomInt(listSize)) / 2);
+			}
+            return (si);  // return 'Shuffled' index
+        }
+
+
+		function test_Shuffle(inx, mixID, listSize) {
+			// TBD testing / DEBUGing ...
+
+			//return MillerShuffleAlgo_d(inx, mixID, listSize);
+            //return MillerShuffle_lite(inx, mixID, listSize);
+			//return MillerShuffle_xlite(inx, mixID, listSize);
 		}
 
 
-		// ----------------------------  Randomness Statistics Calculations ...
-		// ------------------------------------------------------------------------------------------
+		// ----------------------------  Randomness Statistics Calculations (to fill statistics table)...
+		//===========================================================================================
 
-        function calculateStats(array) {  // Calculate Random Statisic Stats for a given array and current data aspect settings
+		function calculateStats(array) {  // Calculate Random Statistic Stats for a given array and current data aspect settings
             let size = array.length;
             let range = 256;
             if (algoOpt == "opt7") size = size / 2;   // patch for Dbl Deck Dealing
@@ -705,6 +721,7 @@
 
             let v = [size];		// the shuffle data single value stats are based on
             let x, y = [size];   // data pair used by stats requiring two points, like Pi calc
+			histoCnts = new Array(range).fill(0); // used by Histogram generation function
 
 			for (let i = 0; i < size; i++) {
 				// set values used in stat calcs based on desired data aspect being characterized
@@ -714,16 +731,20 @@
 					let x2 = (i > 0) ? array[i - 1] : array[size - 1];  // this appears more reflective
 					let dv = x - x2;
 					if (dv < 0) dv += range;  // rap around difference of (0-255)
-					v[i] = dv;
-					y[i] = dv;
+					v[i] = dv;  // v[] is for single value calculation
+					y[i] = dv;  // y[] is for x,y[] coordinance (to calc pi)
+					histoCnts[dv]++;
 				} else if (viData) { // delta i
 					let di = (i%range) - x;
 					if (di < 0) di += range;  // rap around difference of (0-255)
 					v[i] = di;
 					y[i] = i;
+					histoCnts[di]++;
 				} else { // our normal processing of the data set
 					v[i] = x;
 					y[i] = array[(i + 1) % range];
+					if (rawX) histoCnts[x]++;
+					else histoCnts[(x ^ y[i]) % range]++;  // default for PRIG random representation for the value combination of v0 & v1
 				}
 			}
 
@@ -742,14 +763,16 @@
 				let x = v[i];
 				if (!(dvData || viData)) {	// ------ special Chi2 handling suitable for Shuffled Values vs "random" ones
 					// for Chi2 "Shuffles" can't use just: array[i] as there is always equal count (1) of every value ...
-					// therefore using adjacent values XORed, as this proves to gives excelent comparable Chi2 results
-					x = (array[i] ^ array[(i + 1) % range]) % range;  // 'range' need be 2**n for this to be truely valid
-					//x = array[i] ^ (i % range);  // surprisingly, not as representitive
+					// therefore using adjacent values XORed, as this proves to gives excellent comparable Chi2 results
+					x = (array[i] ^ array[(i + 1) % range]) % range;  // 'range' need be 2**n for this to be truly fully valid
+					//x = (array[i] + array[(i + 1) % range]) % range; // this "+" combination makes every algo look good
+					//x = array[i] ^ (i % range);  // surprisingly, not as representative
                     if (algo == 1 && algoOpt == "opt1") x = array[i];  //  normalize for identity set 
 				}
                 values.push(x);
             }
-            valCounts = new Array(range).fill(0); // Count delta frequencies
+
+			valCounts = new Array(range).fill(0);  // count the frequencies of the values
             for (const val of values) {
                 valCounts[val]++;
             }
@@ -776,19 +799,39 @@
             }
             let relVecMag = rvSum / cnt;  // overall average SB ~= the mean
 
+			// ---------- The "Up/Down Rule" (1.5 Rule) lengths of runs of increasing or decreasing values will average 1.5
+			let d_cnt = d_sum = dsumCnt = 0;
+			let dir = false;
+			for (let i = 0; i < size; i++) {
+				d_cnt++;   // direction cnt, # of consecutive increased or decreased values
+				x = v[i];
+				let x1 = v[(i + 1) % size];
+				if ((x > x1) != dir) {
+					dir = (x > x1);
+					d_sum += d_cnt;
+					dsumCnt++;
+					d_cnt = 0;
+				}
+			}
+			let calcUpDn = (d_sum / dsumCnt);  // avg consecutive Up / Down cnt
+			let udError = 100 * (calcUpDn - 1.50) / 1.50;
+
             // ---------- Pi calculation based on points which fall in a circle
             const r_sqrd = (range - 1) * (range - 1);
             let incircle = 0;
             var montepi;
             for (let i = 0; i < size; i++) {
-                x = v[i];
+				x = array[i];
                 montepi = (x * x) + (y[i] * y[i]);
                 if (montepi < r_sqrd) incircle++;
             }
             let calcPi = (4.0 * incircle / size);
             //let piError = 100 * Math.abs(calcPi - 3.14159) / 3.14159; // calculate % err
             let piError = 100 * (calcPi - 3.14159) / 3.14159;
-            //piError=calcPi;  // debugging
+
+			let avgError;  // scaled back the 'UpDown rule's effect due to its natural greater reactiveness
+			if (udError < 1000) avgError = (2 * Math.abs(piError) + Math.abs(udError)) / 4;  // calc an Avg. Error (udError is expected to be 2x as big, so results is 1x)
+			else avgError = Math.abs(piError);  // to handle identity outlier
 
             // limit the number of reported decimal places, saving the wide spread use of .toFixed()
 				mean = Math.floor(100 * mean) / 100;
@@ -798,7 +841,8 @@
 			stdDev = Math.floor(100 * stdDev) / 100;
 			ChiSquared = Math.floor(100 * ChiSquared) / 100;
 			piError = Math.floor(100 * piError) / 100;
-            return { ChiSquared, relVecMag, mean, deltaMean, stdDev, piError };
+			avgError = Math.floor(100 * avgError) / 100;
+			return { ChiSquared, relVecMag, mean, deltaMean, stdDev, piError, avgError };
         }
 
 
@@ -811,7 +855,8 @@
             expectedStdDev = (Math.floor(100 * expectedStdDev) / 100);
 			const expectedChiSquared = "255"; // size - 1; // Expected Chi-squared (degrees of freedom)
 			const expectedPiError = "0.0";
-			return { ChiSquared: expectedChiSquared, relVecMag: expectedRelVecMag, mean: expectedMean, deltaMean: expectedDeltaMean, stdDev: expectedStdDev, piError: expectedPiError };
+			const expectedAvgError = "0.0";
+			return { ChiSquared: expectedChiSquared, relVecMag: expectedRelVecMag, mean: expectedMean, deltaMean: expectedDeltaMean, stdDev: expectedStdDev, piError: expectedPiError, avgError: expectedAvgError };
 		}
 
         // Generate a single unsigned 32-bit random number
@@ -819,78 +864,73 @@
             return Math.floor(Math.random() * 4294967295);
         }
 
+		// --------------------------------------------------
 		function updateStats(algo) {  // used for interval updating of the stats for the current Algo
-
 			const range = 256;
-			const sets = 20;	// note: this effets the overall magnitute of the Histogram feature
-			//const size = 2560; // 10240; // 2560; // 4096; // 1024;
-            const size = sets * range; // for a total data sets of items ranging 0-255 (for a size 1024)
+			const sets = 40;	// note: this affects the overall magnitude of the Histogram feature
+			const size = sets * range; // for a total data sets of items ranging 0-255 (for total items to be generated)
 			let updatedStats = new Object();
+			let summedStats = new Array(6 + 1).fill(0);
 			let datasetArray = [];
 
 			let dsArrays = [];
 			for (let s = 1; s <= sets; s++) { // gether enough data for decent statistical analysis
 				updnum++;
 				datasetArray = [];
-                shuffleID = getUint32Random();
+				shuffleID = getUint32Random(); // randomly set the shuffleID for each shuffled set
+				if (randID) shuffleID = randID + s;  // overRide for testing
 				if (algo == 1) datasetArray.push(...identity(range));
 				else if (algo == 2) datasetArray.push(...humanShuffle(range));
 				else if (algo == 3) datasetArray.push(...fisherYatesShuffle(range));
 				else if (algo == 4) datasetArray.push(...MSA_PRIG_Array(range));
 				else if (algo == 5) datasetArray.push(...randomScaled(range));
 				dsArrays.push(...datasetArray);
-			//}
-				//if (algo == 1 && algoOpt == "opt1") datasetArray = datasetArray.slice(0, 256);  // with 'Identity' stdize on 256 length for consistant stats
+
 				updatedStats = calculateStats(datasetArray);
+				// note stats from 20x shuffles averaged is more telling than stats taken from a dataset 20x in size
+				summedStats[1] += updatedStats.ChiSquared;
+				summedStats[2] += updatedStats.relVecMag;
+				summedStats[3] += updatedStats.mean;
+				summedStats[4] += updatedStats.stdDev;
+				summedStats[5] += Math.abs(updatedStats.piError);
+				summedStats[6] += Math.abs(updatedStats.avgError);
 
-				// -------------------- Do a running averaging update of the stats
-				//console.log("Result of calculateStats:", updatedStats);
-				// ------------ update the stats while doing a bit of running averaging
-				rows[algo - 1].cells[1].textContent = ((rows[algo - 1].cells[1].textContent * (9) + updatedStats.ChiSquared) / 10).toFixed(0);
-				//    rows[algo-1].cells[2].textContent = updatedStats.deltaMean;
-				//    rows[algo-1].cells[2].textContent = updatedStats.relVecMag;
-				rows[algo - 1].cells[2].textContent = ((rows[algo - 1].cells[2].textContent * 3 + updatedStats.relVecMag) / 4).toFixed(2);
-				rows[algo - 1].cells[3].textContent = ((rows[algo - 1].cells[3].textContent * 3 + updatedStats.mean) / 4).toFixed(2);
-				rows[algo - 1].cells[4].textContent = ((rows[algo - 1].cells[4].textContent * 3 + updatedStats.stdDev) / 4).toFixed(2);
-				rows[algo - 1].cells[5].textContent = ((rows[algo - 1].cells[5].textContent * 3 + updatedStats.piError) / 4).toFixed(2);
-
-				if (newAlgo) { // reset running stats for a newly selected Algo
-					newAlgo = false;
-					rows[algo - 1].cells[1].textContent = updatedStats.ChiSquared.toFixed(0);
-					rows[algo - 1].cells[2].textContent = updatedStats.relVecMag;
-					rows[algo - 1].cells[3].textContent = updatedStats.mean;
-					rows[algo - 1].cells[4].textContent = updatedStats.stdDev;
-					rows[algo - 1].cells[5].textContent = updatedStats.piError;
-				}
 				if (algoOpt != "opt5") dump = false;
 			}
 
+			rows[algo - 1].cells[1].textContent = (summedStats[1] / sets).toFixed(0);
+			rows[algo - 1].cells[2].textContent = (summedStats[2] / sets).toFixed(2);
+			rows[algo - 1].cells[3].textContent = (summedStats[3] / sets).toFixed(2);
+			rows[algo - 1].cells[4].textContent = (summedStats[4] / sets).toFixed(2);
+			rows[algo - 1].cells[5].textContent = (summedStats[6] / sets).toFixed(2);  // use Avg % Error, instead of just Pi err
+			//rows[algo - 1].cells[5].textContent = (summedStats[5] / sets).toFixed(2) + " " + (summedStats[6] / sets).toFixed(2);
+
 			if (iStack && Hist) {
-                calculateStats(dsArrays); // prepare data for histogram
+				updatedStats = calculateStats(dsArrays); // prepare data of the multi array dataset for the histogram
 				displayHistogram();
 			}
 		}
 
-		function displayHistogram() {
+		function displayHistogram() {	// overlay Histogram to bottom of the snowy view port
             let h;
 			let range = 256;
 
             for (let i = 0; i < range; i++) {
                 // -------------------------------- Redraw Item count Stack bar chart
-                if ((lastIStack.length > 0)) {
-                    h = lastIStack[i] + 8;
+				if ((lastStack.length > 0)) {
+					h = lastStack[i] + 8;
                     ctx.fillStyle = bGnd; // '#124';  // '#124'; // first reset it
                     //ctx.fillStyle = `rgba(17, 34, 68, 1.0)`;
-                    ctx.fillRect(i * 2, 514 - 2 * h, 4, 2 * h); // extra errase patch
+					ctx.fillRect(i * 2, 514 - 2 * h, 4, 2 * h); // extra erase patch
                 }
-                h = valCounts[i];
+				h = histoCnts[i];
                 if (h != 0) {
                     if (i & 1) ctx.fillStyle = `rgba(255, 255, 0, 0.9)`;  // stagger the coloring
                     else ctx.fillStyle = `rgba(255, 180, 0, 1)`;
                     ctx.fillRect(i * 2, 514 - 2 * h, 2, 2 * h);
                 }
             }
-            lastIStack = valCounts;
+			lastStack = histoCnts;
 		}
 
 
@@ -901,26 +941,15 @@
 		const SEQ_LENGTH = 256;  // Inner loop count (numbers in each sequence)
 		const NUM_RANGE = 256;   // The range of numbers, 0-255
 
-		/**
-		 * A mock Pseudorandom Number Generator (PRNG).
-		 * This function simulates a PRNG using JavaScript's Math.random().
-		 * @returns {number} An integer from 0-255.
-		 */
-		//		function testPRNG() {
-		//			return Math.floor(Math.random() * NUM_RANGE);
-		//		}
-
-		// ----------------------- support a varible algo based shuffle
+		// ----------------------- support a variable algo based shuffle
 		let items = 256;
 		let theMix = [items];
-
+		// used be the Unique_Temporal_Stats()
 		function algoShuffle(inx, mixID, nItems) {  // provides shuffle results for the current "algo"
 			// these globals need to get reinitialize each time balls are "reracked"
 			inx = inx % nItems;
-			if (randID) mixID = randID;  // overRide
-			//else mixID = Math.floor(Math.random() * 4294000000);
-			//mixID = Math.floor(Math.random() * 1000000000);  // Identifies the Shuffle  (with 0-999999999 random instances)
-			shuffleID = mixID; // set the globally used by some var
+			if (randID) mixID = randID;  // overRide for testing
+			shuffleID = mixID; // set the globally used by some algo
 			if (inx == 0) { // init theMix[] if needed
 				// setup needed array 'theMix[]' for Fisher-Yates algo (& Humans) as it must shuffle items all together at once.
 				// Miller Shuffle Algos will simply pick from the remaining items as needed. As for random() it picks items out of the air.
@@ -930,7 +959,6 @@
 			}
 
 			let shuffledIndex;
-
 			if (algo == 1) shuffledIndex = theMix[inx];				// for Identity just return the indexing 'selectNum'
 			else if (algo == 2) shuffledIndex = theMix[inx];
 			else if (algo == 3) shuffledIndex = theMix[inx];
@@ -957,7 +985,7 @@
 		}
 
 
-		// =================  Calculate Uniqueness Generation and Temporal Randomness statistics
+        // -----------------  Calculate Temporal Randomness statistics and for Uniqueness Generation
 		//document.getElementById('run-test-btn').addEventListener('click', () => {
 		function Unique_Temporal_Stats() {
 			// --- Variables for storing aggregate statistics across all trials ---
@@ -975,8 +1003,9 @@
 				var value;
 
 				//randID = 31416 + trial + 1; // use overRide for repeatability Testing (also =ing .c results)
-				mixID = Math.floor(Math.random() * 4294000000);
-				shuffleID = mixID; // set the globally used var
+				let mixID = Math.floor(Math.random() * 4294000000);
+				if (randID) mixID = randID;  // overRide for testing
+				shuffleID = mixID; // set this globally, as may be used
 				// --- Inner Loop: Generate one full sequence of numbers ---
 				for (let i = 0; i < SEQ_LENGTH; i++) {
 					// To see how the tests fail, comment the first line and uncomment the second.
@@ -1001,7 +1030,7 @@
 					sequence.push(value);
 					sum += value;
 				}
-				randID = 0; // clear this override
+				//randID = 0; // clear this override
 				randTot += shuffleID;
 
 				// ------------ Runs Test (Wald-Wolfowitz)
@@ -1021,12 +1050,12 @@
 				totalRuns += currentRuns;
 
 				// ------------- Autocorrelation (lag: 1-5)
-				// Checks if a number is correlated with the number that came at a ponit before it.
+				// Checks if a number is correlated with the number that came at a point before it.
 				const mean = sum / SEQ_LENGTH;
 				let numerator = 0.0;   // Sum of (x_i - mean) * (x_{i-lag} - mean)
 				let denominator = 0.0; // Sum of (x_i - mean)^2
 
-				let lag = trial % 5 + 1;  // use lag of 1-5, to be more general
+				let lag = trial % 5 + 1;  // use lag of 1-5, to be more general, 4 is important for most card games
 				for (let i = 0; i < SEQ_LENGTH; i++) {
 					denominator += (sequence[i] - mean) ** 2;
 					if (i > (lag - 1)) {
@@ -1051,18 +1080,14 @@
 			output += `   avg Lag Coefficient(<): ${avgAutocorrelation.toFixed(4)}\n`;
 			//output += "   Ideal Value for Random Data: 0.0\n";
 
-			// Display results
-			//		document.getElementById('results-output').textContent = output;
-			//		document.getElementById('results-container').classList.remove('hidden');
-
-			//--------------------------------------------------------------------------
+            //---------- now lets test for Uniqueness Generation capabilites -----------
 			// (aka Flush Distro) check the distribution of suits for 5 card hands dealt
 			// possible 5 card suit hands 4^5 = 1024
 			// sort of a hybrid of a combination and ordered permutation
 
 			const posi = 1024;  // 4*4*4*4*4
 			let combo = new Array(1025); // accumulates results of suit combo-permutation of hands dealt
-			// hand of 5 cards each 1of4 suits = 4*4*4*4*4 = 1024 posibilities
+			// hand of 5 cards each 1of4 suits = 4*4*4*4*4 = 1024 possibilities
 			let suitP;
 			let ci; // card index dealt
 			let dSize = 52;
@@ -1078,12 +1103,14 @@
 			for (i = 0; i < 1024; i++) combo[i] = 0;
 
 			for (d = 1; d <= hands / 10; d++) {  // we get 10 hands 0f 5 out of 52 cards
-				shuffleID = Math.floor(Math.random() * 4294000000);
-				//shuffleID = 31416 + d; // for repeatability testing
+				let mixID = Math.floor(Math.random() * 4294000000);
+				//mixID = 31416 + d; // for repeatability testing
+				shuffleID = mixID; // set this globally, as may be used
+
 				suitP = 0;
 				randTot += shuffleID;
 				for (let i = 0; i < dSize; i++) {
-					ci = algoShuffle(i, shuffleID, dSize);
+					ci = algoShuffle(i, mixID, dSize);
 
 					// -------- support different data prospective
 					let dv = 0;
@@ -1101,7 +1128,7 @@
                     } // else { // our normal processing of the data set
 					//--------
 
-					suitP = 4 * suitP + Math.floor(ci / 13); // * up & + in to build a # prepresenting the 5 digits (of 0-4)
+					suitP = 4 * suitP + Math.floor(ci / 13); // * up & + in to build a # representing the 5 digits (of 0-4)
 					if (i % 5 == 4) {	// from each shuffled deck deal out 10 hands of 5
 						cnt++;
 						combo[suitP]++;
@@ -1151,6 +1178,7 @@
 		//ss+="<br/>\n";
         ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MSA_e= 6454819 &nbsp;MS_lite= 6268132 ";
 		document.getElementById('chksumArea').innerHTML += ss + "</small><br/>\n";
+		randCut = 0;  // disable shuffleID override
 		//----------------------------------------------------------------------------
 		/***/
 
@@ -1179,10 +1207,10 @@
 			return Math.floor(Math.random() * limit);
 		}
 
-		// To form a Snow Flurry, we want to continuously generate points to plot on the Fly.
+		// To form a Snow Flurry, we want to continuously generate points (Snow Flakes) to plot on the Fly.
 		// MSA does that naturally,  as does random().
 		// Fisher-Yates, as well as Human shuffles, requires a group (array) of items, like a desk of cards to manipulate.
-		function nextShuffledItem() {
+		function next_SnowFlake() {
 			let item;
 			inx = ptCnt % numItems
 			if (inx == 0) {
@@ -1192,6 +1220,7 @@
 				if (algo == 3) flurryArray = fisherYatesShuffle(numItems);
 			}
 
+			ShuffleID = flurryID;  // used by some algos
 			if (algo == 1) {
                 if (algoOpt == "opt7") item = DDeck_Shuffle(ptCnt, numItems);
                 else if (algoOpt == "opt8") item = weak_PRIG(ptCnt, flurryID, numItems);
@@ -1219,7 +1248,7 @@
 		function update() {  // draw next snow flake (aka dot) & update while aging prior flakes
 			const prevX = currentX;
 			if (scatterPlot) {
-				OPlot_update();		// do an aggrigating plot
+				OPlot_update();		// do an aggregating plot
                 OPlot_update();
                 OPlot_update();		// at quadruple max speed
                 return OPlot_update();
@@ -1227,12 +1256,17 @@
 
 			if (!isPaused) {
                 maxdSize = 4;
-				currentX = nextShuffledItem();
+				currentX = next_SnowFlake();
 				if (document.getElementById('dvData').checked)  // go by what page says
-					currentY = (currentX > prevX) ? currentX - prevX : 256 + currentX - prevX; // use X,delta
+					currentY = (currentX > prevX) ? currentX - prevX : 256 + currentX - prevX; // use X,deltaV
 				else {
-					if (viData) currentY = ptCnt % numItems;  // revealing/infomative & rains down the screen 'snowing'
-					else currentY = prevX;  // use consecutive X values, for good randomness representation
+					if (viData) {
+						let di = (ptCnt % numItems) - currentX;
+						if (di < 0) di += numItems;  // rap around difference of (0-255)
+						currentX = di;
+						currentY = ptCnt % numItems;  // revealing/informative & rains down the screen 'snowing' // use X,i
+					}
+					else currentY = prevX;  // default: use consecutive X values, for good randomness representation
 				}
 				ptCnt++;
 
@@ -1269,17 +1303,23 @@
 		}
 
 
-		// added colored coded frequency of dot (x,y) Occurrance Plotting
+		// added colored coded frequency of dot (x,y) Occurrence Plotting
 		// ----------------------------------------------------------------------
         function OPlot_update() {  
 			const prevX = currentX;
 			if (!isPaused) {
-				currentX = nextShuffledItem();
+				currentX = next_SnowFlake();
 				if (document.getElementById('dvData').checked)  // go by what page says
-					currentY = (currentX > prevX) ? currentX - prevX : 256 + currentX - prevX; // use X,delta
+					currentY = (currentX > prevX) ? currentX - prevX : 256 + currentX - prevX; // use X,deltaV
 				else {
-					if (viData) currentY = ptCnt % numItems;  // revealing/infomative & rains down the screen 'snowing'
-					else currentY = prevX;  // use consecutive X values, for good randomness representation
+					//if (viData) currentY = ptCnt % numItems;  // revealing/informative & rains down the screen 'snowing' // use X,i
+					if (viData) {
+						let di = (ptCnt % numItems) - currentX;
+						if (di < 0) di += numItems;  // rap around difference of (0-255)
+						currentX = di;
+						currentY = ptCnt % numItems;  // revealing/informative & rains down the screen 'snowing' // use dI,i
+					}
+					else currentY = prevX;  // default: use consecutive X values, for good randomness representation
 				}
 
                 ptCnt++;
@@ -1295,7 +1335,7 @@
                     if (newPts == 64880) diagLog.innerText += "At " + ptCnt + "  99% of possible grid points have been generated.\n";
 				}
 				if (n < 26) {
-                    --nCnt[n-1];  // remove cnt from privious tally
+					--nCnt[n - 1];  // remove cnt from previous tally
 					++nCnt[n];
 				}
 
@@ -1359,7 +1399,7 @@
 
 				// !!! Stop after time plot well filled up.  (only done with dev tools open)
 				if (ptCnt == 100000) {	// Execution will pause here, with 'best' distro representation image
-					console.log("point count occurrances out of 100K: \n" + nCnt);  // logs the array values
+					console.log("point count occurrences out of 100K: \n" + nCnt);  // logs the array values
                     let pp = (100 * newPts / 65536).toFixed(1);
                     console.log("% of possible points generated " + pp + " after 100K\n");
 					diagLog.innerText += "% of grid points that got generated: " + pp + " after 100K\n";
@@ -1367,7 +1407,7 @@
                     document.getElementById('notice').innerHTML = "Plot will continue to slowly evolve."
 				}
 				if (ptCnt == 250000) {
-                    console.log("point count occurrances out of 250K: \n" + nCnt);
+					console.log("point count occurrences out of 250K: \n" + nCnt);
                     let pp = (100 * newPts / 65536).toFixed(1);
 					console.log("% of possible points generated " + pp + " after 100K\n");
                     diagLog.innerText += "% of grid points that got generated: " + pp + " after 250K\n";
@@ -1411,9 +1451,6 @@
 
 			clearInterval(intervalId); // Stop the update interval
 			ctx.fillStyle = bGnd;
-			//ctx.fillStyle = 0;
-			//ctx.fillStyle = '#FFFFFF';
-			//ctx.fillStyle = `rgba(255, 255, 255, 1)`;
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 			// Restart the interval immediately after clearing
 			intervalId = setInterval(update, 10000 / (speed * speed));
@@ -1473,12 +1510,16 @@
 			selectNum = 0;
 			remaining = 15;
 			lotoID = Math.floor(Math.random() * 1000000);  // Identifies the Shuffle  (with 0-999999 random instances)
+			if (randID) lotoID = randID;  // overRide for testing
+			shuffleID = lotoID;  // dbl-Deck uses this
 
 			// setup needed array 'lotoMix[]' for Fisher-Yates algo (& Humans) as it must shuffle items all together at once.
 			// Miller Shuffle Algos will simply pick from the remaining items as needed. As for random() it picks items out of the air.
 			if (algo == 1) lotoMix = identity(numBalls);
-			if (algo == 2) lotoMix = humanShuffle(numBalls);
+			else if (algo == 2) lotoMix = humanShuffle(numBalls);
 			else if (algo == 3) lotoMix = fisherYatesShuffle(numBalls);
+			else if (algo == 4) lotoMix = MSA_PRIG_Array(numBalls);
+			else if (algo == 5) lotoMix = randomScaled(numBalls);
 
 			for (let i = 1; i <= numBalls; i++) {
 				const ball = document.createElement('div');
@@ -1492,44 +1533,39 @@
 			}
 		}
 
-		function pickRandomBall() {	// pick a 'random' ball, move it to the end of the selected balls on line 2
+		function pickRandomBall() {	// pick a 'random' ball from the mix, move it to the end of the selected balls on line 2
 			if (!isPaused) {
 				if (remaining == 0) {
 					remaining--;	 // 1 step pause when finished
 					return;
 				}
-
 				if (balls.length === 0 || remaining <= 0 || init == 0) {
 					createBalls();
 					init++;
-
-					if (diag) {  // -------- diag/interest
-						document.getElementById('ballShuffleStats').innerHTML = " 15 item shuffle Stats: &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; " + JSON.stringify(stats);
-						stats = randCalcRuns(algo, 15, 100);
-						document.getElementById('ballShuffleStats').innerHTML += "<br/> 100x 15 item shuffle Stats: &nbsp;" + JSON.stringify(stats);
-						//stats = randCalcRuns(algo, 256, 100);
-						//document.getElementById('ballShuffleStats').innerHTML += "<br/> 40x 256 item shuffle Stats: &nbsp;" + JSON.stringify(stats);
-					}
 					return;
 				}
 
-				const allBalls = balls.concat(ballsOnSecondLine);
-				let shuffledIndex;
-
-				if (selectNum >= lotoMix.length) {
-					//console.log(" selectNum=", selectNum);
-					if (algo == 1) lotoMix.push(...identity(numBalls));  // we have not selected all of the 15, so get another set of selections
+				if (selectNum == 1) {
+					if (diag) {  // -------- diag/interest
+						stats = randCalcRuns(0, 15, 1); // special case, calculates stats for the previous loto balls
+						document.getElementById('ballShuffleStats').innerHTML = " Pool Loto 15 item shuffle Stats: &nbsp; " + JSON.stringify(stats);
+						stats = randCalcRuns(algo, 15, 100);
+						document.getElementById('ballShuffleStats').innerHTML += "<br/> 100x 15 item shuffle Stats: &nbsp;" + JSON.stringify(stats);
+                        stats = randCalcRuns(algo, 52, 40);
+                        document.getElementById('ballShuffleStats').innerHTML += "<br/> 40x 52 item shuffle Stats: &nbsp; " + JSON.stringify(stats);
+						stats = randCalcRuns(algo, 256, 40);
+						document.getElementById('ballShuffleStats').innerHTML += "<br/> 40x 256 item shuffle Stats: &nbsp;" + JSON.stringify(stats);
+					}
 				}
 
-				if (algo == 1) shuffledIndex = lotoMix[selectNum];				// for Identity just return the indexing 'selectNum'
-				else if (algo == 2) shuffledIndex = lotoMix[selectNum];
-				else if (algo == 3) shuffledIndex = lotoMix[selectNum];
-				else if (algo == 4) shuffledIndex = MSA_PRIG(selectNum, lotoID, numBalls);  // gets next shuffled index item
-				else if (algo == 5) shuffledIndex = Math.floor(Math.random() * numBalls);  // gets random value from within the range
+				if (selectNum >= lotoMix.length) {  // handle non-PRIG short selections
+					//console.log(" selectNum=", selectNum);
+					if (algo == 1) lotoMix.push(...identity(numBalls));  // we have not selected all of the 15, so get another set of selections
+					if (algo == 5) lotoMix.push(...randomScaled(numBalls));
+				}
+				const allBalls = balls.concat(ballsOnSecondLine);
+				let shuffledIndex = lotoMix[selectNum];
 				selectNum++;
-
-//				if (diag && selectNum <= numBalls) lotoMix[selectNum - 1] = shuffledIndex; // ---- diag/interests, be sure that lotoMix gets filled
-//				if (diag && selectNum == numBalls) stats = calculateStats(lotoMix);
 
                 const selectedBall = allBalls[shuffledIndex % allBalls.length];  // make sure selectedBall is in range
 				document.getElementById('selCnt').innerHTML = selectNum;
@@ -1569,8 +1605,10 @@
 
 		//=============================================  Diagnostic & Testing late additions
 
-		// as taking randomness statistics on a single 15 item shuffle apears not very informitive
-		function randCalcRuns(algo, setSize, runs) { // do Random Stat Calc over many shuffle outputs (runs)
+		// As taking randomness statistics on a single 15 item shuffle appears not very informative,
+		// do Random Stat Calc over many shuffle outputs (runs).
+		// Set initial 'shuffleID' prior to running as desired.
+		function randCalcRuns(algo, setSize, runs) {
 			// Calcs the stats on the Whole data set at the end, could have calc'd each shuffle and averaged the sums of the stats.
 			// But as with 15 items the stats you get are more stable and better for comparison when computed from a larger dataset.
 			const size = setSize;
@@ -1580,27 +1618,39 @@
 			let sumSquares = 0;
 			let sumDSquares = 0;
 			let rvSum = 0, cnt = 0;
+			let plus1 = 0;	// cnts # of consecutive items found ShBe: ~=1 (N*1/N) in a shuffled collection of N items (very telling for human shuffle)
 			const r_sqrd = (size - 1) * (size - 1);
 			let incircle = 0, montepi;
 			const expMean = (setSize - 1) / 2;
 			let deltaCounts = new Array(setSize).fill(0); // Count delta frequencies
 
+			let d_cnt = d_sum = dsumCnt = 0;   // for u/d 1.5 calc
+			let dir = true;
+
 			for (run = 0; run < runs; run++) {
-				if (algo == 1) array = identity(setSize);
+				if (run > 0) {
+					shuffleID = getUint32Random(); // randomly set the shuffleID
+				}
+				if (randID) shuffleID = randID + run;  // overRide for testing
+				if (algo == 0) array = lotoMix; // use the last Loto
+				else if (algo == 1) array = identity(setSize);
 				else if (algo == 2) array = humanShuffle(setSize);
 				else if (algo == 3) array = fisherYatesShuffle(setSize);
 				else if (algo == 4) array = MSA_PRIG_Array(setSize);
 				else if (algo == 5) array = randomScaled(setSize);
 
-				for (let i = 0; i < size; i++) {  // accumulate all the measures
+				for (let i = 0; i < size; i++) {  // accumulate a meaningful set of measurements
 					sum += array[i];
 					sumSquares += Math.pow(array[i] - expMean, 2);
 					// ---------- Delta Chi-squared test
 					let d = (i > 0) ? (array[i] - array[i - 1]) : (array[0] - array[size - 1]);
+					let ddir = d > 0; // for u/d 1.5 calc
 					if (d < 0) d += maxDelta;  // rap around difference
 					deltaSum += d;
 					deltaCounts[d]++;
-					sumDSquares += Math.pow(d - expMean, 2);  // used fro Std_Dev of delta values
+					// using a pre-known expected Mean as opposed to calculated for the given dataset
+					// this causes different results from table based Identity & Human -dv but more useful for us
+					sumDSquares += Math.pow(d - expMean, 2);  // used for Std_Dev of delta values
 					// ---------- Relative Displacement aka: Vector average magnitude
 					for (let j = 0; j < size; j++) {
 						var dist = (array[j] - array[i]);
@@ -1612,11 +1662,20 @@
 							cnt++;  // tracks the # of sample of Relative Displacement taken
 						}
 					}
-					// ---------
+					if (i > 0 && array[i] == (array[i - 1] + 1)) plus1++; // cnt items in consecutive order
+					// ---------  Pi calculation
 					let x = array[i];
 					let y = d;
 					montepi = (x * x) + (y * y);
 					if (montepi < r_sqrd) incircle++;
+					// ---------- The "Up/Down Rule" (1.5 Rule) lengths of runs of increasing or decreasing values will average 1.5
+					d_cnt++;   // direction cnt, # of consecutive increased or decreased values
+					if (ddir != dir) {
+						dir = ddir;
+						d_sum += d_cnt;
+						dsumCnt++;
+						d_cnt = 0;
+					}
 				}
 			}
 
@@ -1633,18 +1692,23 @@
 				deltaChiSquared += Math.pow((deltaCounts[i] / expected), 2); // !specially normalized for multi runs testing & compare
 			}
 
+			plus1 = plus1 / runs;  // sb: ~1 (0.98) / shuffle
 			let relVecMag = rvSum / cnt;  // overall average SB ~= the mean
 			let calcPi = (4.0 * incircle / sampleSize); // ---------- Pi calculation based on points which fall in a circle
 			let piError = 100 * Math.abs(calcPi - 3.14159) / 3.14159; // calculate % err
+			let calcUpDn = (d_sum / dsumCnt);  // avg consecutive Up / Down cnt
+			let udError = 100 * Math.abs(calcUpDn - 1.50) / 1.50;
+			let avgError = (2 * piError + udError) / 4;  // calc an Avg. Error (udError is expected to be 2x as big, so results is 1x scale)
+
 			// limit the number of reported decimal places, so json() is easier to read
 			mean = Math.floor(100 * mean) / 100; deltaMean = Math.floor(100 * deltaMean) / 100; relVecMag = Math.floor(100 * relVecMag) / 100;
 			stdDvDev = Math.floor(100 * stdDvDev) / 100; deltaChiSquared = Math.floor(100 * deltaChiSquared) / 100; piError = Math.floor(100 * piError) / 100;
+			avgError = Math.floor(100 * avgError) / 100;
 
-			return { deltaChiSquared, relVecMag, mean, deltaMean, stdDvDev, piError };  // now using stdDvDev instead of stdDev
+			return { deltaChiSquared, relVecMag, mean, deltaMean, stdDvDev, avgError, plus1 };  // now using stdDvDev instead of stdDev & avgError instead of piError
 
 		}
 	</script>
 
 </body>
 </html>
-
