@@ -1,8 +1,11 @@
-// Miller Shuffle Algorithm proto types
-unsigned int MillerShuffleAlgo_e(unsigned int, unsigned int, unsigned int);
-short int MillerShuffle_lite (short, unsigned long, short);
+#include <stdint.h>
 
-unsigned int DDeck_Shuffle      (unsigned int, unsigned int, unsigned int);
+// Miller Shuffle Algorithm proto types
+uint32_t MillerShuffleAlgo_e(uint32_t, uint32_t, uint32_t);
+uint32_t MillerShuffle_Large(uint32_t, uint32_t, uint32_t);
+unsigned short int MillerShuffle_lite(unsigned short, unsigned long, unsigned short);
+
+unsigned int DDeck_Shuffle(unsigned int, unsigned int, unsigned int);
 
 // perhaps better descriptive Names, given the application
 #define MillerShuffle MillerShuffleAlgo_e
