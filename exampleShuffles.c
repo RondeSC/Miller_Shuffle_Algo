@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	unsigned int chks;
 	float mean;
 	bool PRIG_err = false;
-	int stdChkSums[] = {6351454, 5980121, 6115927, 6386077};
+	int stdChkSums[] = {6351454, 6397853, 6178469, 6402495 };
    
 	printf("\nFirst we'll valid the MillerShuffle algorithms' implementation ensuring that they'll deliver the performance\n"); 
 	printf("seen in their testing results during development. This is done by check-summing their output given specific\n"); 
@@ -31,17 +31,17 @@ int main(int argc, char **argv)
 	printf("Note that any changes in an algorithm can result in undesirable patterns in the shuffles produced.\n");
 
 	// verify algorithms
-	printf("\nChecksums for     MS_e,   MS_lite:   (with Aug2025 update)\n");
+	printf("\nChecksums for     MS_e    MS_lite  MS_Large:    (with Jan2026 update)\n");
 	printf(  "               ");
-	for (algo=5; algo<=6; algo++) {
+	for (algo=5; algo<=7; algo++) {
 		chks=algoChkSum(algo);  // show algo chksum
 		printf("  %d",chks);
 		if (chks != stdChkSums[algo-4]) PRIG_err = true;
 	}
-	printf("\n should be:      5980121  6115927.\n");
+	printf("\n should be:      6397853  6178469  6402495.\n");
 
 	printf("\nMean must=256.0:");
-	for (algo=5; algo<=6; algo++) {
+	for (algo=5; algo<=7; algo++) {
 		mean = MeanTest(algo, 314159);
 		printf("  %.2f ",mean);  // show algo chksum
 		if (mean != 256.0) PRIG_err = true;
@@ -84,6 +84,7 @@ int main(int argc, char **argv)
 
 	}
 	printf("\n\n* Note the repeated letters in the rand() generated \"shuffles\".\n");
+	printf(" When using rand() additional memory structure and logic are needed to handle multiple collisions.\n");
 	printf(" FisherYate's output would ~= MillerShuffle, but requires a persistent RAM array.\n");
 	printf(" With Fisher-Yates a new session normally requires a new shuffled array, you then get repeats between sessions.\n");
 	printf(" With the Miller Shuffle Algorithm you easily avoid all the (inter & intra-session) annoying repeats.\n\n");
@@ -119,7 +120,7 @@ unsigned int algoChkSum(int algo) {  // does a Simple Shifting Check Sum (both v
 		//if (algo==4)      item = MillerShuffleAlgo_d(i, randCut, lim);
 		if (algo==5) item = MillerShuffleAlgo_e(i, randCut, lim);
 		else if (algo==6) item = MillerShuffle_lite (i, randCut, lim); 
-		//else if (algo==7) item = MillerShuffle_xlite(i, randCut, lim);  
+		else if (algo==7) item = MillerShuffle_Large(i, randCut, lim);  
 		csum += (item<<sh);
 		if (++sh==8) sh=0;
 	  }
@@ -146,7 +147,7 @@ float MeanTest(int algo, unsigned int randCut) {  // does a Simple Shifting Chec
     //if (algo==4)      item = MillerShuffleAlgo_d (i, randCut, nlimit); 
     if (algo==5) item = MillerShuffleAlgo_e (i, randCut, nlimit); 
     else if (algo==6) item = MillerShuffle_lite (i, randCut, nlimit); 
-    //else if (algo==7) item = MillerShuffle_xlite(i, randCut, nlimit); 
+    else if (algo==7) item = MillerShuffle_Large(i, randCut, nlimit); 
     sum += item;
   }
 
