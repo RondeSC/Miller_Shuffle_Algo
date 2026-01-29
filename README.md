@@ -1,6 +1,6 @@
 #  the Miller Shuffle Algorithm
 
-This is a new Shuffle Algorithm.
+This is a new type of Shuffle Algorithm.
 
 When implementing play-list shuffle algorithms, apparently some (even on big name electronics and streaming services), simply use an operation like songIndex=random(NumOfSongs). This use of a PRNG will give you a good mathematical randomness to what is played. But you will get many premature repetitions of song selections.
 
