@@ -6,7 +6,7 @@ When implementing play-list shuffle algorithms, apparently some (even on big nam
 
 The Fisher-Yates (aka Knuth) algorithm has been a solution that fixes this unwanted repetition. The issue this algorithm does come with is the added burden of an array in RAM memory of 2 times the maximum number of songs (for up to 65,000 items 128KB of RAM is needed) being dedicated to shuffled indexes for the duration that access to additional items from the shuffle are desired. The array is normally maintained by the calling routine, and passed by reference to a function implementing the Fisher-Yates algorithm. This is a significant issue for a resource limited microprocessor application as well as for an online service with millions upon millions of shuffle lists to maintain.
 
-The algorithm I present here (refered to as the Miller Shuffle algorithm) provides basically the same beneficial functionality with a comparable level of randomness, without the need of any array or upfront processing, and does not utilizing a PRNG. 
+The algorithm I present here (refered to as the Miller Shuffle Algorithm) provides basically the same beneficial functionality with a comparable level of randomness, without the need of any array or upfront processing, and does not utilizing a PRNG. 
 It reduces the algorithm's time complexity to O(1) from O(n) for Fisher-Yates and O(n^2) for naive implementations. It is essentially a [Pseudo Random **Index** Generator](https://docs.google.com/document/d/1UOzZNXHsaTuRHNFvPH_tQwVWfTXUj9xP) (**PRIG**).  
 As defined herein, a Pseudo Random Index Generator (PRIG) returns each possible value in a range once and only once in a pseudo random order, with the input of a 'shuffleID' and a reference index (0 to N-1, generally used sequentially). 
 Additionally when utilizing a PRIG, there is no need for an array to serve as a play history record. You can simply decrement the reference index to step back through the play history.
@@ -15,95 +15,65 @@ Characteristics of the Miller Shuffle algorithm
   * Provides a pseudo random, yet unique, index within a given stated range and a reference value from that range. 
   * does Not require RAM memory for an array (saves 2 * size of the # of indexes, over F-Y algo)
   * No upfront processing. Minimal processing to generate any shuffled index on the fly.
-  * Deterministic (except B variant). Does not need a record of past plays in order to go back through selections (like using random() would)
-  * Not dependent on a system PRNG (except B variant).
+  * Deterministic. Does not need a record of past plays in order to go back through selections (like using random() would)
+  * Not dependent on a system PRNG.
 
 The way the algorithm works its magic is by utilizing multiple curated computations which are ‘symmetrical’, in that the range of values which go in are the same values which come out albeit in a different order. Conceptually each computation {e.g.  si=(i+K) mod N } stirs or scatters about the values within its pot (aka: range 0 to N-1) in a different way such that the combined result is a well randomized shuffle of the values within the range.
 This is achieved without the processing of intermediate “candidates” which are redundant or out of range values (unlike with the use of a PRNG or LFSR) which would cause a geometrically increasing inefficiency, due to the overhead of retries.
 
-In applications where an even distribution of expected patterns like a given pair of cards from a 'shuffled' deck is near esseniencial there is room for improvement. To handle this, I devised the Miller Shuffle Algo-b *(no longer necessary given algo-D or later)*, which adds in a little use of a PRNG function. I can only see where this could be considered to be earnestly needed is where money is involved, like in a casino gaming machine.
 
 Note that while you don't get any repeats within a Fisher-Yates shuffle, new session reshuffles (done with FY) result in session to session repeats. Further these unrequested re-shuffles result in loss of play history.
 When utilizing a Miller Shuffle algorithm, a logical reference index and a shuffleID are all that needs to be retained in order to continue where one left off.
-Examples of when some code might fetch a new Shuffle Index (si) from a shuffle: ...when a blackJack player says “hit me”, or draws a couple of Dominoes or Scrabble tiles, or needs the next song from their shuffled playlist. A perfectly suited case: would be to select a daily Wordle solution word from a curated dictionary, knowing that it couldn’t have been used in the past months or even years.
+Examples of when some code might fetch a new Shuffle Index (si) from a preexisting shuffle: ...when a blackJack player says “hit me”, or draws a couple of Dominoes or Scrabble tiles, or needs the next song from their shuffled playlist. A perfectly suited case: would be to select a daily Wordle solution word from a curated dictionary, knowing that it couldn’t have been used in the past months or even years.
 
 Miller Shuffle Algos' statistical behavior have been extensively tested, honed and validated over time.
-For details, on initial development, randomness statistics and efficacy analysis, of the Miller Shuffle Algo see:
+For details on initial early development, randomness statistics and efficacy analysis, of the Miller Shuffle Algo see:
 https://www.instructables.com/Miller-Shuffle-Algorithm/
 
-In this repository there is a simple executable program "exampleShuffles" using MillerShuffleAlgo() in a comparison with the use of rand() shuffling a set of items. There is also a Javascript implementation .
+In this repository there is a simple executable program "exampleShuffles" using MillerShuffleAlgo() in a comparison with the use of rand() shuffling a set of items. There is also a Javascript implementation of the algorithums.
 
-To get a visual feel for the randomness of a given shuffle I have done shatter charts spacially mapping consecutive selection pairs. Where bunching occurs it might correlate to going between the same two groups of items (e.g. suits, card face values or albums). [Take a look.](https://docs.google.com/spreadsheets/d/1n-cfXohH4p2NeRkCWs8eUEnNjbuzbWRlPC8en-Ht3qM/edit?usp=sharing)  It’s not that these events are happening close in time as the charts have no time axis. 
+To get a visual feel for the randomness of a given shuffle I have done scatter charts spacially mapping consecutive selection pairs. Where bunching occurs it might correlate to going between the same two groups of items (e.g. suits, card face values or albums). [Take a look.](https://docs.google.com/spreadsheets/d/1n-cfXohH4p2NeRkCWs8eUEnNjbuzbWRlPC8en-Ht3qM/edit?usp=sharing)  It’s not that these events are nessesarially happening close in time (the charts have no time axis) but do reflect a pattern. 
 
-Details on earilier variant changes and history of randomness test results were moved to: Variant_Evolution.md  
-Comments on supporting very large and small listsizes has been moved to file: Large_small_item_cnts.md
-
-June 2023 Update:
------------------
-MillerShuffleAlgo_e (& MSA_d) have had two simple XOR operations added. While not especially improving the randomness of items found within a shuffle, the ability to produce a multitude (billions) of shuffle permutations is greatly enhanced. The algorithm's likelihood of giving a repeated permutation goes from ~1:1000 to ~1:100000 (maybe even much better than that, I am still having a little hard time separating out repeated ShuffleIDs from repeated shuffle permutations). I have expanded and improved my testing suite, aiding in the algorithms’ improvement. MSA_d has apparently slightly more randomness with in a shuffle while MSA_e is better at producing unique shuffles.
-MS_lite also was updated and now is better than MSA_a, MSA_c and the original MSA_b were. The checksum values for the algorithms were accordingly updated.
-
-```
-                        dv     Geo.  Permu   repeated-shuffles   r2D
-                ChiSq  ChiSq   err    devi   /million  first@    Mark
-MSlite
-    prior:       489    546   4.24%   60.1     903k      493     1.95
-    updated:     283    365   1.82%   37.6      250    62722     0.88
-MSA_d
-    prior:       257    351   1.64%   58.6    32968     2107     0.84
-    updated:     254    282   1.50%   29.1      29    127601     0.65
-MSA_e
-    prior:       263    363   1.28%   41.5     290     43742     0.68
-    updated:     261    303   1.27%   27.4      10    196568     0.68
-	
-Nominal:         255    255     <<     <        <<       >>       <
-	
-  Figures here are not directly comparable with earilier results,
-  due to testing and shuffleID generation changes.
-
-This chart is outdated! Current figures are much better.
-```
-The repeated permutation statistics are from shuffling 52 items. As the number of items being shuffled goes above 200 the number of repeated shuffles per million approaches zero, for all current MillerShuffle variations including the MS eXtra lite version.
-
-If really needed, or for academic pursuit, the potential numbers of unique shuffle permutations could be improved by orders of magnitude by increasing the shuffleID beyond 32 bits and using those bits to increase the algorithm’s randomizing factors. Alternatively a second 32bit input value could be utilized. One easy way  to effectively do this is to do back to back shuffles ie: myItem = MShuffle(MShuffle(i,sID,n), sID2,n). With two randomly generated 32bit shuffleIDs. I found the results, doing the latter, indistinguishable from those of Fisher-Yates; and generated 0 repeated shuffles while testing the generation of billions of unique shuffle permutations (a billion-billions may be possible).
-
-If you don’t mind giving up the deterministic feature, you can alternatively utilize MSA_b instead, for the improvement in permutation generation (of ~ x1000). It is likly that 99.9% of all applications could be best served by either MS_lite, MSA_d or MSA_e shuffle algorithms.
-
-I have included a function: random() to give 32bit pseudo random values (>4 billion) suitable for use as shuffleIDs. Using the C function rand(), as is, to set ‘shuffleID’s will yield about 32K unique shuffles, and may very well suit your needs.
  - - -
-Up until recently I have been getting tens of repeats/million from my 32b random function. Previous to that, I had been dealing with 100s/million.
-I tried almost everything and got nowhere improving on this, until I did. I am glad to report that I updated my random() function and now it will yield over 500 million unique values in a row. This is as coded, compiled with VS-C 2022, and ran on my PC; and is dependent on the associated rand() implementation. You may get different results with other development stacks. 
-So now the testing of MSA_d reports only 12 repeats/million, and MSA_e reports 0/million. Further testing of **MSA_e results in Zero repeated shuffles** out of the 500 million generated. No telling how many billions of 52 item shuffle permutations it could potentially provide.  
-Note: Due to the hash table based process I use for testing, there may actually be many times more unique shuffles being generated, and there is theoretically some chance that there are duplicate shuffles that are not detected.
- - - -
-Prior to **Aug 2023**, the randomizing factors (r1-rx) were set empirically for best test results. Now setting them to modulo values of different primes, where the primes multiplied together is greater than the SID 32bit value range ensures that the r-factors (e.g. r1,r2,r3) are a unique set per a corollary to the Chinese remainder theorem.  
-Doing this for the r-factors maximizes the potential shuffle permutations generated. This has little effect on the random nature of a given shuffle. Further I don’t consider that using different r-factors constitutes a different Miller Shuffle variant. The heart of a variant is determined by the algorithm making up its combined shuffle operations. This is also what predominantly determines the random nature of the shuffles generated.  
-The latest MillerShuffleAlgo -E has been updated accordingly.
- - - -
-**Dec 2023**, While implementing a game inspired by the Rubik cube I used a PRIG function with a limit of 3. I tested that I was getting good random mixes of the values 0,1,2 and I was. But I did many other tests and found that with a limit of 2 that some of the implemented shuffles failed at the task. I am not doing exhaustive testing on this.  
-Therefore, I state that the Miller Shuffle Algorithms are not qualified to do shuffles of less than 3 items.  
+Details on earilier (2022-2024) variant changes and history of randomness test results were moved to: Variant_Evolution.md and are of little to no value now, and can be miss-informative.
+
+**Notable updates from 2024:**
 
 You may be interested to know that I have developed a [Super-Shuffle](https://github.com/RondeSC/Super_Shuffle) for the prevention of **inter shuffle** bunching of like items.
- - - -
-**Feb 2024**, MS_lite & MS_xlite have been greatly improved.
-Where you do need billions of unique shuffles use MSA_e. In cases, shuffling game items, cards, songs or wordle lists, where upwards of millions of unique shuffles are sufficient permutations for your needs, and still want excellent randomness within your shuffled items a lite MSA algorithm will give good service (or even the MSA-Xlite).  MS_xlite is now my default PRIG() function used in my game software.
- - - -
-**Jan 2025**, After an edge case error, in the javascript version, which returned a negative number, it was determined there were some range rollover issues in the calculations of some of the Randomizing Constants. These were reworked such that there were not even slightly significant changes in the pseudo randomness statistics of any shuffle algorithm per comprehensive retesting.
-
-Further: Demoted MSA_b to simply  ShuffleAlgo_b as it does NOT adhere to the features supported in all the other MSAs (MillerShuffleAlgos). Specifically:  1) at any time obtain the n'th item of a "shuffle" without "shuffling" all the other items.  2) Deterministic: Get the same results for a given shuffle regardless of when or where, the hardware, the operating system, or state of the resident PRNG. and 3) Its output's checksum can be used to guarantee the algorithm's implementation and thus behavior.
 
 Added MillerShuffle_Demo.html an interactive web page which I think is fun and hopefully illustrative of the randomness nature of the Miller Shuffle Algo and others. Within the JavaScript code three use cases are presented.
- - - -
-Aug 2025 Update:
------------------
-The  interactive web page "MillerShuffle_Demo.html" has been significantly expanded. Data sets of shuffles are now characterized in three ways (with values as originally done, delta values and delta index offsets), which are measured statically and drive plots. Additional types of statistical analysis are printed out, and there are two new plots: a histogram of values and that of colorized accumulative grid point (x,y) occurrences.
 
-<img width="1530" height="868" alt="MSA_Demo_image" src="https://github.com/user-attachments/assets/25b83b9a-ec6d-47a7-93e4-9e4c5bd09202" />
- 
-There is an **updated MS_lite algorithm** (both in .c and .js) which performs statistically on par with the MSA-d, and is recommended in any application not requiring the extreme item count (>10,000) or the billions of consecutive unique shuffles of the MSA-e algorithm.
+<img width="1530" height="868" alt="MSA_Demo_image" src="https://github.com/user-attachments/assets/25b83b9a-ec6d-47a7-93e4-9e4c5bd09202" /> 
+<br/><br/>
 
-MSA-d and MS_xlite have been removed, in favor of the updated MS_lite.
+**Aug 2025 Update:**
 
- Here are some samples of interesting plots (BTW: better shuffles tend to give boring plots).
+MSA-d and MS_xlite have been removed, in favor of an updated MS_lite. The updated MS_lite performs statistically on par with the MSA-d, and recommended in any application not requiring the extreme item counts or the billions of consecutive unique shuffles of MSA-e.
+
+The interactive web page "MillerShuffle_Demo.html" has been significantly expanded. Data sets of shuffles are now characterized in three ways (with values as originally done, delta values and delta index offsets), which are measured statically and drive plots. Additional types of statistical analysis are printed out, and there are two new plots: a histogram of values and that of colorized accumulative grid point (x,y) occurrences.
+
+Here are some samples of interesting plots (BTW: better shuffles tend to give boring plots).
 ![Shuffle_plots](https://github.com/user-attachments/assets/73fadddc-3a74-4244-8447-fb85cde185b9)
+
+ - - -
+The file Large_small_item_cnts.md has been removed, as currently mostly rerevalent.
+
+ Jan 2026 Update
+----------------
+With added interest in support for larger item counts, I expanded MS_lite to handle the full range of a 'c' standard integer ( up to 32767, similar to that of the rand() function). MSA_e was given optimized prime constants so as to support shuffling up to 65536 items.
+The selection of constants to use in order to enable expansion of the number of items that can be properly shuffled was optimized by rigorous automatic performance evaluation consuming weeks of 24/7 multi-core testing.
+
+I set out to choose a pair of primary primes to use, from a list of ~3000 prime values. The number of possible sets was 9,000,000. I measured the quality of the shuffles produced with a given pair with a battery of test results, of various natures. To test one pair took ~20secs (looking for duplicates over several millions of different sized shuffles took most of the time). To test them all would take 5.7 years of processing for me. So I did a fraction of that. But I did not want to do a fenced in region of the whole field, and I didn't want to waste time on repeated pairs due to the  use of a PRNG. I realized that using a PRIG could give me the pair selections I needed and wanted. Considering a unique pair as a two digit 3000,3000 number I could use a  PRIG to give out instances of the 9 million and then let p1=iNum/3000 and p2=iNum%3000. Hence I found myself needing a PRIG that could handle counts of 9 million.
+So I created a new PRIG version: MS_Large. It can handle items numbering over 4 billion (up to 4,294,967,296). Special care had to be taken (resulting in added complexity) as well as exhaustive testing had to be done. I tested MS_Large for proper shuffles with item counts from 1 up to 1 billion, including boundary testing at 2^32-1 and 2^32.
+
+Results: 
+
+In the end both MS-lite and MSA-e yielded notably better results in ~ 20 of 30 performance test measurements and gave ~ = results in all the rest. The new MS-Large's randomness and unique generation statistics are ~ ½ way between that of MS-lite and MSA-e.
+BTW, the updated stats for 52 item shuffle uniqueness are:
+The 'lite' Miller Shuffle PRIG algo will generally give you 100-200K unique shuffles prior to a repeated one. 
+The new MS-Large gets on average <0.1 repeated shuffles in a million.
+The MSA-e algo will produce a unique shuffle (of 52 items) for each of the >4 billion possible ShuffleID values.
+All 3 algos now support shuffling item counts down to 2, even 1 ;~}
+
+
 
