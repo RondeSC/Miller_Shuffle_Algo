@@ -3,6 +3,7 @@
 <!-- source: https://github.com/RondeSC/Miller_Shuffle_Algo -->
 <!-- Ron Miller Jan 2025, Cobbled together from multiple development efforts -->
 <!-- Ron Miller Aug-Sep 2025, Expanded and Improved statistics and Graphing & Plotting -->
+<!-- Ron Miller Jan 2026, updated checksums for new & revised algos
 
 <!-- Note that some statistic calculations may have inaccuracies of ~0.5% (or 1/256) due to straight forward implementations -->
 <!-- That is tolerated, as statistics from a random datasets may vary +/-10% and the code to handle the odd case may add 20% complexity  -->
@@ -294,6 +295,7 @@
 			} else {
 				event.target.textContent = 'Pause Processing';
 			}
+            document.getElementById('notice').innerHTML = "";
 		});
 
 		// button press, changing the Algo being used to produce points for the scatter plot & more
@@ -381,7 +383,7 @@
 				if (dvData) el.innerHTML = "<b>deltaV </b>";
 				else if (viData) el.innerHTML = "<b>delta I </b>";
 				else {
-					if (rawX) el.innerHTML = "<b>rawVal </b>";
+					if (rawX) el.innerHTML = "<b>Raw Values </b>";
 					else el.innerHTML = "<b>Values </b>";
 				}
 			} else el.innerHTML = "values ";
@@ -408,8 +410,8 @@
 			if (viData) pType = "di,i";
 			document.getElementById('dataType').innerHTML = " &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Data being Tested & Plotted: <b>" + pType + "</b>";
 			rows[algo - 1].classList.add('active');
-            Unique_Temporal_Stats();
-			restartStats()
+			restartStats();
+            //Unique_Temporal_Stats(); // added statictics
 		}
 
 		//=============================================================== Algo statistics support
@@ -495,7 +497,8 @@
 		}
 
 		function MSA_PRIG_Array(size) {  // uses the Miller Shuffle Algo (MSA_e)
-			let array = [];
+            const array = [];
+			if (randID) shuffleID = randID;
 			for (let i = 0; i < size; i++) {
 				array.push(MillerShuffle(i, shuffleID, size));
 			}
@@ -534,8 +537,9 @@
 
 		// generate an "identity" shuffle, alternately use other algorithms for testing
 		function identity(size) {
-			let array = [];
+			const array = [];
 			let asize = size;
+			if (randID) shuffleID = randID;
 			if (algoOpt == "opt7") asize = 2 * size;  // to accommodate Dbl Deck Dealing
 			for (let i = 0; i < asize; i++) {
 				if (algoOpt == "opt7") {
@@ -589,7 +593,7 @@
 
 			var numRiffles = 4;
 			var rif = 6;
-			if (pro) { numRiffles = 6; rif = 4; }
+            if (pro) { numRiffles = 5; rif = 4; }  // TBD numRiffles = 5 or 6 for pro?
 			//rif=3;  //  this made for ~50% (too much, unreal) improvement
 
 			// typical player may do 2-4 Riffle Shuffles with 1-6 cards in each dovetail 'rif'
@@ -706,7 +710,7 @@
 
 			//return MillerShuffleAlgo_d(inx, mixID, listSize);
             //return MillerShuffle_lite(inx, mixID, listSize);
-			//return MillerShuffle_xlite(inx, mixID, listSize);
+            //return MillerShuffle_Large(inx, mixID, listSize);
 		}
 
 
@@ -731,7 +735,7 @@
 					let x2 = (i > 0) ? array[i - 1] : array[size - 1];  // this appears more reflective
 					let dv = x - x2;
 					if (dv < 0) dv += range;  // rap around difference of (0-255)
-					v[i] = dv;  // v[] is for single value calculation
+					v[i] = dv;  // v[] is for single value calculation (inc. Chi2)
 					y[i] = dv;  // y[] is for x,y[] coordinance (to calc pi)
 					histoCnts[dv]++;
 				} else if (viData) { // delta i
@@ -867,7 +871,7 @@
 		// --------------------------------------------------
 		function updateStats(algo) {  // used for interval updating of the stats for the current Algo
 			const range = 256;
-			const sets = 40;	// note: this affects the overall magnitude of the Histogram feature
+            const sets = 200;
 			const size = sets * range; // for a total data sets of items ranging 0-255 (for total items to be generated)
 			let updatedStats = new Object();
 			let summedStats = new Array(6 + 1).fill(0);
@@ -884,7 +888,7 @@
 				else if (algo == 3) datasetArray.push(...fisherYatesShuffle(range));
 				else if (algo == 4) datasetArray.push(...MSA_PRIG_Array(range));
 				else if (algo == 5) datasetArray.push(...randomScaled(range));
-				dsArrays.push(...datasetArray);
+                if (s <= 40) dsArrays.push(...datasetArray);  // limit the histogram overall magnitude 
 
 				updatedStats = calculateStats(datasetArray);
 				// note stats from 20x shuffles averaged is more telling than stats taken from a dataset 20x in size
@@ -954,7 +958,7 @@
 				// setup needed array 'theMix[]' for Fisher-Yates algo (& Humans) as it must shuffle items all together at once.
 				// Miller Shuffle Algos will simply pick from the remaining items as needed. As for random() it picks items out of the air.
 				if (algo == 1) theMix = identity(nItems);
-				if (algo == 2) theMix = humanShuffle(nItems);
+				else if (algo == 2) theMix = humanShuffle(nItems);
 				else if (algo == 3) theMix = fisherYatesShuffle(nItems);
 			}
 
@@ -1033,7 +1037,7 @@
 				//randID = 0; // clear this override
 				randTot += shuffleID;
 
-				// ------------ Runs Test (Wald-Wolfowitz)
+				// ------------ Runs Test (Wald-Wolfowitz)  it is basicaly a coin flip 50/50 test
 				// A "run" is a series of consecutive points all above or all below the median.
 				const median = (NUM_RANGE - 1) / 2.0;
 				let currentRuns = 1;
@@ -1159,28 +1163,55 @@
 
         /***
 		//----------------------------------------------------------------------------
-		//  show MSA algo chksums
+		//  show various MSA algo chksums   -   to validate c-js port
 		let randCut = 314159;
-		var ss = "<br/>Chksums and validity testing with Aug 2025 update version: <br/>";
+		var ss = "<br/>Chksums and validity testing against Jan 2026 release version: <br/>";
 		document.getElementById('chksumArea').innerHTML += ss;
 		ss = "";
 		randCut = 314159;
-		//let chks = algoChkSum(4, randCut); ss = ss + " &nbsp; &nbsp; ChkSum &nbsp; &nbsp;MSA_d: " + chks;
-        let chks = algoChkSum(5, randCut);   ss = ss + " &nbsp; &nbsp; ChkSum &nbsp; &nbsp;MSA_e: &nbsp;" + chks;
-		chks = algoChkSum(6, randCut); ss = ss + "&nbsp; MS_lite: &nbsp;" + chks;
-        ss = ss + "<br/>\n &nbsp; &nbsp; Expect: &nbsp; &nbsp; MSA_e= 5980121 &nbsp;MS_lite= 6115927 \n<br/>"; // 2025 ver values
+		let chks = algoChkSum(5, randCut, 256);    ss = ss + " &nbsp; &nbsp; ChkSum &nbsp; &nbsp;MSA_e: &nbsp;" + chks;
+		chks = algoChkSum(6, randCut, 256);        ss = ss + "&nbsp; MS_lite: &nbsp;" + chks;
+		chks = algoChkSum(7, randCut, 256);        ss = ss + "&nbsp; MS_Large: &nbsp;" + chks;
+        ss = ss + "<br/>\n &nbsp; &nbsp; Expect: &nbsp; &nbsp; MSA_e= 6397853 &nbsp;MS_lite= 6178469 &nbsp;MS_Large= 6402495 \n<br/>"; // 2026 ver values
 		ss = ss + "<small>";
 
 		randCut = 0xFFFFFFFF;  // this catches all known and imagined edge cases
-		//ss = ss + " &nbsp; &nbsp; &nbsp; 0FFFFFFFF: &nbsp;MSA_d: " + algoChkSum(4, randCut);
-        ss = ss + " &nbsp; &nbsp; &nbsp; 0FFFFFFFF: &nbsp;MSA_e: &nbsp;" + algoChkSum(5, randCut);
-        ss = ss + " &nbsp;MS_lite: &nbsp;" + algoChkSum(6, randCut);
-		//ss+="<br/>\n";
-        ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MSA_e= 6454819 &nbsp;MS_lite= 6268132 ";
+		ss = ss + " &nbsp; &nbsp; &nbsp; 0FFFFFFFF: &nbsp;MSA_e: &nbsp;" + algoChkSum(5, randCut, 256);
+		ss = ss + " &nbsp;MS_lite: &nbsp;" + algoChkSum(6, randCut, 256);
+		ss = ss + " &nbsp;MS_Large: &nbsp;" + algoChkSum(7, randCut, 256);
+        ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MSA_e= 6295546 &nbsp;MS_lite= 6102578  &nbsp;MS_Large= 6266442";
 		document.getElementById('chksumArea').innerHTML += ss + "</small><br/>\n";
-		randCut = 0;  // disable shuffleID override
+
+		/***
+		// ------------------- Extended Test-Results Verification
+		ss =  "<br/><small>";
+		randCut = 314159;  // this catches all known and imagined edge cases
+		ss = ss + " &nbsp; &nbsp; nItems=2: &nbsp; &nbsp; &nbsp; MSA_e: &nbsp;" + algoChkSum(5, randCut, 2);
+		ss = ss + " &nbsp;MS_lite: &nbsp;" + algoChkSum(6, randCut, 2);
+		ss = ss + " &nbsp;MS_Large: &nbsp;" + algoChkSum(7, randCut, 2);
+        ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MSA_e= 81433 &nbsp;MS_lite= 81081 &nbsp;MS_Large= 79732 ";
+
+		ss = ss + "<br/> &nbsp; &nbsp; nItems=32768: &nbsp;MSA_e: &nbsp;" + algoChkSum(5, randCut, 32768);
+		ss = ss + " &nbsp;MS_lite: &nbsp;" + algoChkSum(6, randCut, 32768);
+		ss = ss + " &nbsp;MS_Large: &nbsp;" + algoChkSum(7, randCut, 32768);
+        ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MSA_e= 4198164724 &nbsp;MS_lite= 4098180844 &nbsp;MS_Large= 4054925329 ";
+
+		ss = ss + "<br/> &nbsp; &nbsp; nItems=65536: &nbsp;MSA_e: &nbsp;" + algoChkSum(5, randCut, 65536);
+		ss = ss + " &nbsp;MS_lite: &nbsp;" + algoChkSum(6, randCut, 65536);
+		ss = ss + " &nbsp;MS_Large: &nbsp;" + algoChkSum(7, randCut, 65536);
+        ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MSA_e= 3755166319 &nbsp;MS_lite= 0 &nbsp;MS_Large= 2643556179 ";
+
+		ss = ss + "<br/> &nbsp; &nbsp; nItems=1,000,000: &nbsp;MS_Large: &nbsp;" + algoChkSum(7, randCut, 1000000);
+        ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MS_Large= 121510963 ";
+ 
+		//ss = ss + "<br/> &nbsp; &nbsp; nItems= 1 Billion: &nbsp;MS_Large: &nbsp;" + algoChkSum(7, randCut, 1000000000); // try a billion (2? bill max)
+		//ss += "<br/>\n &nbsp; &nbsp; &nbsp; &nbsp; expect: &nbsp; &nbsp; &nbsp; &nbsp; MS_Large= 309156281 ";
+
+		document.getElementById('chksumArea').innerHTML += ss + "</small><br/><br/>\n";
+
 		//----------------------------------------------------------------------------
 		/***/
+		randCut = 0;  // disable shuffleID override
 
 
 		//======================================= Produce Snow Flurry based on selected Algorithm
@@ -1403,15 +1434,18 @@
                     let pp = (100 * newPts / 65536).toFixed(1);
                     console.log("% of possible points generated " + pp + " after 100K\n");
 					diagLog.innerText += "% of grid points that got generated: " + pp + " after 100K\n";
-					debugger;
+					debugger;  // stop the action for viewing
                     document.getElementById('notice').innerHTML = "Plot will continue to slowly evolve."
 				}
-				if (ptCnt == 250000) {
+                if (ptCnt == 200000) {   //250000) {
 					console.log("point count occurrences out of 250K: \n" + nCnt);
                     let pp = (100 * newPts / 65536).toFixed(1);
-					console.log("% of possible points generated " + pp + " after 100K\n");
+					console.log("% of possible points generated " + pp + " after 200K\n");
                     diagLog.innerText += "% of grid points that got generated: " + pp + " after 250K\n";
-					debugger;
+                    //debugger;
+                    isPaused = true;
+                    document.getElementById('pauseButton').textContent = ' --- PAUSED --- ';
+                    document.getElementById('notice').innerHTML = "Plotting Paused for your inspection."
 				}
 
                 if (dColor >= 256) dColor = 249;
@@ -1553,8 +1587,8 @@
 						document.getElementById('ballShuffleStats').innerHTML += "<br/> 100x 15 item shuffle Stats: &nbsp;" + JSON.stringify(stats);
                         stats = randCalcRuns(algo, 52, 40);
                         document.getElementById('ballShuffleStats').innerHTML += "<br/> 40x 52 item shuffle Stats: &nbsp; " + JSON.stringify(stats);
-						stats = randCalcRuns(algo, 256, 40);
-						document.getElementById('ballShuffleStats').innerHTML += "<br/> 40x 256 item shuffle Stats: &nbsp;" + JSON.stringify(stats);
+						stats = randCalcRuns(algo, 256, 200);
+						document.getElementById('ballShuffleStats').innerHTML += "<br/> 200x 256 shuffle Stats: &nbsp;" + JSON.stringify(stats);
 					}
 				}
 
@@ -1663,12 +1697,13 @@
 						}
 					}
 					if (i > 0 && array[i] == (array[i - 1] + 1)) plus1++; // cnt items in consecutive order
+                    if (i > 0 && array[i] == (array[i - 1])) plus1++;  // to account for non PRIG randomness which also produces consecutive = items (~ same boo-hiss)
 					// ---------  Pi calculation
 					let x = array[i];
 					let y = d;
 					montepi = (x * x) + (y * y);
 					if (montepi < r_sqrd) incircle++;
-					// ---------- The "Up/Down Rule" (1.5 Rule) lengths of runs of increasing or decreasing values will average 1.5
+					// ---------- The "Up/Down Rule" (1.5 Rule) lengths of runs having increasing or decreasing values will average 1.5
 					d_cnt++;   // direction cnt, # of consecutive increased or decreased values
 					if (ddir != dir) {
 						dir = ddir;
